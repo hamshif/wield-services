@@ -1,28 +1,15 @@
 #!/usr/bin/env python
-import os
+
 from wielder.util.arguer import get_kube_parser
 
 from wielder.wield.planner import WieldPlan, WieldAction
-
-
-def get_module_root():
-
-    kube_parser = get_kube_parser()
-    kube_args = kube_parser.parse_args()
-
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    print(f"current working dir: {dir_path}")
-
-    module_root = dir_path[:dir_path.rfind('/') + 1]
-    print(f"Module root: {module_root}")
-
-    return module_root
+from wield_services.wield.deploy.util import get_module_root
 
 
 # TODO code use of service only and observe
 def slate_wield(action=WieldAction.PLAN, auto_approve=False, service_only=False, observe=True):
 
-    module_root = get_module_root()
+    module_root = get_module_root(__file__)
     print(f"Module root: {module_root}")
 
     conf_dir = f'{module_root}conf'
@@ -60,4 +47,6 @@ def test():
 
 if __name__ == "__main__":
 
+    kube_parser = get_kube_parser()
+    kube_args = kube_parser.parse_args()
     test()
