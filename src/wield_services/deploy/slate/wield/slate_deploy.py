@@ -6,7 +6,7 @@ from wielder.wield.planner import WieldPlan, WieldAction
 from wield_services.wield.deploy.util import get_module_root
 
 
-# TODO code use of service only and observe
+# TODO code use of service only
 def slate_wield(action=WieldAction.PLAN, auto_approve=False, service_only=False, observe=True):
 
     module_root = get_module_root(__file__)
@@ -29,7 +29,8 @@ def slate_wield(action=WieldAction.PLAN, auto_approve=False, service_only=False,
 
     plan.wield(
         action=action,
-        auto_approve=auto_approve
+        auto_approve=auto_approve,
+        observe=observe
     )
 
 
@@ -41,7 +42,8 @@ def test():
 
     slate_wield(
         action=WieldAction.DELETE,
-        auto_approve=False
+        auto_approve=False,
+        observe=True
     )
 
 
