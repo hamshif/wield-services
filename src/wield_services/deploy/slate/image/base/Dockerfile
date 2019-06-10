@@ -23,6 +23,7 @@ RUN apk add --no-cache openssl-dev libffi-dev build-base python3-dev
 RUN pip3 install kubernetes
 RUN pip3 install kafka
 RUN pip3 install kazoo
+RUN pip3 install flask
 
 
 #debug

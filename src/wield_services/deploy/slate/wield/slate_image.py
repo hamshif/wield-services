@@ -22,7 +22,7 @@ def push_image(conf):
               f'gcloud container images list --repository={conf.gcp_image_repo_zone}/{conf.gcp_project}/rtp/slate;')
 
 
-def pack_image(conf, push=False):
+def pack_image(conf, push=False, force_base=False):
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     print(f"current working dir: {dir_path}")
@@ -43,7 +43,7 @@ def pack_image(conf, push=False):
     print(f"base_image_trace: {base_image_trace}")
 
     # Check if the list is empty
-    if not base_image_trace:
+    if force_base or not base_image_trace:
 
         print(f"attempting to create base image")
 
@@ -70,6 +70,6 @@ if __name__ == "__main__":
 
     _conf = local_process_args(kube_args)
     # TODO add tag
-    pack_image(_conf, push=False)
+    pack_image(_conf, push=False, force_base=False)
 
     # push_image(conf)
