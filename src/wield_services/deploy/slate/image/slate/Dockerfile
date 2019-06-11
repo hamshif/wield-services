@@ -1,4 +1,4 @@
-FROM slate/base:dev
+FROM py37/base:dev
 MAINTAINER hamshif@gmail.com
 
 COPY run.sh /run.sh

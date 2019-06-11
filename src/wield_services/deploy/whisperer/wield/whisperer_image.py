@@ -1,12 +1,25 @@
 #!/usr/bin/env python
 
-from wield_services.wield.deploy.util import pack_image, get_conf
+from wield_services.wield.deploy.util import pack_image, get_conf, get_module_root
 
 
 def whisperer_image():
-    _conf = get_conf()
-    # TODO add tag
-    pack_image(_conf, base_name='py37', name='flask', push=False, force_base=False)
+
+    conf = get_conf()
+
+    pack_image(
+        conf,
+        name='py37',
+        push=False,
+        force=False
+    )
+
+    pack_image(
+        conf,
+        name='flask',
+        push=False,
+        force=True
+    )
 
     # push_image(conf)
 

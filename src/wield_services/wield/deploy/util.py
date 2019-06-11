@@ -74,36 +74,32 @@ def push_image(gcp_conf, name):
 
 
 # TODO abstract to multiple bases
-def pack_image(conf, base_name, name, push=False, force_base=False):
+# TODO add image version tags
+def pack_image(conf, name, push=False, force=False, image_root=None):
 
     gcp_conf = conf.providers.gcp
 
-    image_root = get_project_image_root()
+    if not image_root:
+        image_root = get_project_image_root()
 
-    base_image_trace = async_cmd(
-        f'$(docker images | grep {base_name} | grep base);'
+    image_trace = async_cmd(
+        f'$(docker images | grep {name} | grep base);'
     )
 
-    print(f"base_image_trace: {base_image_trace}")
+    print(f"{name} image_trace: {image_trace}")
 
     # Check if the list is empty
-    if force_base or not base_image_trace:
+    if force or not image_trace:
 
-        print(f"attempting to create base image")
+        print(f"attempting to create image {name}")
 
+        # TODO add an error report and exit after failure in base
         os.system(
-            f'docker build -t {base_name}/base:dev {image_root}/{base_name};'
+            f'docker build -t {name}:dev {image_root}/{name};'
+            f'docker tag {name}:dev {gcp_conf.image_repo_zone}/{gcp_conf.project}/{name}:latest;'
             f'echo "These are the resulting images:";'
-            f'docker images | grep {base_name} | grep base;'
+            f'docker images | grep {name};'
         )
-
-    # TODO add an error report and exit after failure in base
-    os.system(
-        f'docker build -t {name}:dev {image_root}/{name};'
-        f'docker tag {name}:dev {gcp_conf.image_repo_zone}/{gcp_conf.project}/{name}:latest;'
-        f'echo "These are the resulting images:";'
-        f'docker images | grep {name};'
-    )
 
     if push:
         push_image(gcp_conf)
