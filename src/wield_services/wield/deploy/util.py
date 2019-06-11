@@ -4,6 +4,9 @@ from wielder.util.arguer import get_kube_parser
 from pyhocon import ConfigFactory as Cf
 from wielder.wield.planner import wrap_included
 
+from wielder.util.commander import async_cmd
+
+
 RUNTIME_ENV = 'RUNTIME_ENV'
 
 
@@ -49,6 +52,61 @@ def get_module_root(file_context=__file__):
     print(f"Module root: {module_root}")
 
     return module_root
+
+
+def get_project_image_root():
+
+    module_root = get_module_root(__file__)[:-1]
+
+    image_root = module_root[:module_root.rfind('/') + 1] + 'image'
+
+    return image_root
+
+
+# TODO untested
+def push_image(gcp_conf, name):
+
+    # TODO repo as args
+    os.system(
+        f'gcloud docker -- push {gcp_conf.image_repo_zone}/{gcp_conf.project}/{name}:latest;'
+        f'gcloud container images list --repository={gcp_conf.image_repo_zone}/{gcp_conf.project}/rtp/{name};'
+    )
+
+
+# TODO abstract to multiple bases
+def pack_image(conf, base_name, name, push=False, force_base=False):
+
+    gcp_conf = conf.providers.gcp
+
+    image_root = get_project_image_root()
+
+    base_image_trace = async_cmd(
+        f'$(docker images | grep {base_name} | grep base);'
+    )
+
+    print(f"base_image_trace: {base_image_trace}")
+
+    # Check if the list is empty
+    if force_base or not base_image_trace:
+
+        print(f"attempting to create base image")
+
+        os.system(
+            f'docker build -t {base_name}/base:dev {image_root}/{base_name};'
+            f'echo "These are the resulting images:";'
+            f'docker images | grep {base_name} | grep base;'
+        )
+
+    # TODO add an error report and exit after failure in base
+    os.system(
+        f'docker build -t {name}:dev {image_root}/{name};'
+        f'docker tag {name}:dev {gcp_conf.image_repo_zone}/{gcp_conf.project}/{name}:latest;'
+        f'echo "These are the resulting images:";'
+        f'docker images | grep {name};'
+    )
+
+    if push:
+        push_image(gcp_conf)
 
 
 # TODO add framework tests to project

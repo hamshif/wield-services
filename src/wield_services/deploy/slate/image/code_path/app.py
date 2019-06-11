@@ -1,6 +1,7 @@
 from flask import Flask
 from random import randint
 
+
 app = Flask(__name__)
 
 
@@ -11,5 +12,5 @@ def hello():
 
 def show_something():
     r = randint(0, 9)
-    text = f"\nKishkashta\nWielding Slate\nHello World!\n{r}"
+    text = f"\nNaknik\nWielding Slate\nHello World!\n{r}"
     return text
