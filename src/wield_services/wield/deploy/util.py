@@ -73,7 +73,6 @@ def push_image(gcp_conf, name):
     )
 
 
-# TODO abstract to multiple bases
 # TODO add image version tags
 def pack_image(conf, name, push=False, force=False, image_root=None):
 

@@ -7,7 +7,7 @@ from wield_services.deploy.slate.wield.slate_deploy import slate_wield
 from wield_services.deploy.whisperer.wield.whisperer_deploy import whisperer_wield
 
 
-def wield():
+def destroy():
 
     kube_parser = get_kube_parser()
     kube_args = kube_parser.parse_args()
@@ -23,19 +23,19 @@ def wield():
     print(conf)
 
     slate_wield(
-        action=WieldAction.APPLY,
+        action=WieldAction.DELETE,
         auto_approve=True
     )
 
     whisperer_wield(
-        action=WieldAction.APPLY,
+        action=WieldAction.DELETE,
         auto_approve=True
     )
 
 
 def test():
 
-    wield()
+    destroy()
 
 
 if __name__ == "__main__":
