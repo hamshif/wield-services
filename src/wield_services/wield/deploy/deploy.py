@@ -6,8 +6,18 @@ from wield_services.wield.deploy.util import get_conf
 from wield_services.deploy.slate.wield.slate_deploy import slate_wield
 from wield_services.deploy.whisperer.wield.whisperer_deploy import whisperer_wield
 
+import rx
+import concurrent.futures
 
-def wield():
+
+def output(result):
+
+    print(f"Type of result: {type(result)}")
+    # [print(f"result: {r}") for r in result]
+    print(result)
+
+
+def micros_deploy():
 
     kube_parser = get_kube_parser()
     kube_args = kube_parser.parse_args()
@@ -22,20 +32,27 @@ def wield():
 
     print(conf)
 
-    slate_wield(
-        action=WieldAction.APPLY,
-        auto_approve=True
-    )
+    init_functions = [slate_wield, whisperer_wield]
 
-    whisperer_wield(
-        action=WieldAction.APPLY,
-        auto_approve=True
-    )
+    with concurrent.futures.ProcessPoolExecutor(len(init_functions)) as executor:
+        rx.Observable.from_(init_functions).flat_map(
+            lambda s: executor.submit(s, WieldAction.APPLY, True)
+        ).subscribe(output)
+
+    # slate_wield(
+    #     action=WieldAction.APPLY,
+    #     auto_approve=True
+    # )
+    #
+    # whisperer_wield(
+    #     action=WieldAction.APPLY,
+    #     auto_approve=True
+    # )
 
 
 def test():
 
-    wield()
+    micros_deploy()
 
 
 if __name__ == "__main__":
