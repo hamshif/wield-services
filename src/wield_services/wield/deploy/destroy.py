@@ -23,11 +23,13 @@ def destroy():
     print(conf)
 
     slate_wield(
+        conf=conf,
         action=WieldAction.DELETE,
         auto_approve=True
     )
 
     whisperer_wield(
+        conf=conf,
         action=WieldAction.DELETE,
         auto_approve=True
     )

@@ -7,7 +7,13 @@ from wield_services.wield.deploy.util import get_module_root
 
 
 # TODO code use of service only
-def slate_wield(action=WieldAction.PLAN, auto_approve=False, service_only=False, observe_deploy=True):
+def slate_wield(conf, action=WieldAction.PLAN, auto_approve=False, service_only=False, observe_deploy=True):
+
+    if conf:
+        runtime_env = conf.runtime_env
+    else:
+        # TODO get conf myself
+        runtime_env = 'docker'
 
     module_root = get_module_root(__file__)
     print(f"Module root: {module_root}")
@@ -22,7 +28,7 @@ def slate_wield(action=WieldAction.PLAN, auto_approve=False, service_only=False,
         name='slate',
         conf_dir=conf_dir,
         plan_dir=plan_dir,
-        runtime_env='docker'
+        runtime_env=runtime_env
     )
 
     plan.pretty()

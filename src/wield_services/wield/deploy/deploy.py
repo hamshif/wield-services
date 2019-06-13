@@ -36,7 +36,9 @@ def micros_deploy():
 
     with concurrent.futures.ProcessPoolExecutor(len(init_functions)) as executor:
         rx.Observable.from_(init_functions).flat_map(
-            lambda s: executor.submit(s, WieldAction.APPLY, True)
+            lambda s: executor.submit(
+                s, conf, WieldAction.APPLY, auto_approve=True, service_only=False, observe_deploy=True
+            )
         ).subscribe(output)
 
     # slate_wield(

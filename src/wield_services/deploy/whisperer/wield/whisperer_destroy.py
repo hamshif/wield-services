@@ -6,6 +6,7 @@ from wield_services.deploy.whisperer.wield.whisperer_deploy import whisperer_wie
 if __name__ == "__main__":
 
     whisperer_wield(
+        conf=None,
         action=WieldAction.DELETE,
         auto_approve=True
     )
