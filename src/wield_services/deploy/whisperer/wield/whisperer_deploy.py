@@ -1,37 +1,28 @@
 #!/usr/bin/env python
 
-from wielder.wield.planner import WieldPlan, WieldAction
+from wielder.wield.wield_service import WieldService
+from wielder.wield.planner import WieldAction
 from wield_services.wield.deploy.util import get_module_root
 
 
 # TODO code use of service only
 def whisperer_wield(conf, action=WieldAction.PLAN, auto_approve=False, service_only=False, observe_deploy=True):
 
-    if conf:
-        runtime_env = conf.runtime_env
-    else:
-        # TODO get conf myself
-        runtime_env = 'docker'
+    # if conf:
+    #     runtime_env = conf.runtime_env
+    # else:
+    #     # TODO get conf myself
+    #     runtime_env = 'docker'
 
     module_root = get_module_root(__file__)
     print(f"Module root: {module_root}")
 
-    conf_dir = f'{module_root}conf'
-    print(f"conf_path: {conf_dir}")
-
-    plan_dir = f'{module_root}plan'
-    print(f"plan_path: {plan_dir}")
-
-    plan = WieldPlan(
+    service = WieldService(
         name='whisperer',
-        conf_dir=conf_dir,
-        plan_dir=plan_dir,
-        runtime_env=runtime_env
+        module_root=module_root
     )
 
-    plan.pretty()
-
-    plan.wield(
+    service.plan.wield(
         action=action,
         auto_approve=auto_approve
     )

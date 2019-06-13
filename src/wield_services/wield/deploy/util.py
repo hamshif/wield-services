@@ -2,12 +2,24 @@
 import os
 from wielder.util.arguer import get_kube_parser
 from pyhocon import ConfigFactory as Cf
-from wielder.wield.planner import wrap_included
-
 from wielder.util.commander import async_cmd
 
 
 RUNTIME_ENV = 'RUNTIME_ENV'
+
+
+def wrap_included(paths):
+    """
+    Creates configuration tree includes string on the fly
+    :param paths: A list of file paths
+    :return: A string usable by pyhocon.ConfigFactory.parse_string to get config tree
+    """
+
+    includes = ''
+    for path in paths:
+        includes += f'include file("{path}")\n'
+
+    return includes
 
 
 def get_conf(runtime_env='docker', deploy_env='dev'):
