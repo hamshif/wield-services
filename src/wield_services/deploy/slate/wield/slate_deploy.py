@@ -46,6 +46,7 @@ def test():
     slate_wield(WieldAction.APPLY)
 
     slate_wield(
+        conf=None,
         action=WieldAction.DELETE,
         auto_approve=False
     )
