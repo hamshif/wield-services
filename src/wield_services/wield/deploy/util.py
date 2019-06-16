@@ -22,10 +22,11 @@ def wrap_included(paths):
     return includes
 
 
-def get_conf(runtime_env='docker', deploy_env='dev'):
+def get_conf(runtime_env='docker', deploy_env='dev', module_paths=[]):
     """
     Gets the configuration from environment specific config.
     Config files gateways [specific include statements] have to be placed and named according to convention.
+    :param module_paths: paths to module files that get overridden
     :param deploy_env: Development stage [dev, int, qa, stage, prod]
     :param runtime_env: Where the kubernetes cluster is running
     :return: pyhocon configuration tree object
@@ -39,12 +40,14 @@ def get_conf(runtime_env='docker', deploy_env='dev'):
     deploy_env_conf_path = f'{module_root}conf/deploy_env/{deploy_env}/wield.conf'
     developer_conf_path = f'{module_root}conf/personal/developer.conf'
 
-    conf_include_string = wrap_included([
+    ordered_project_files = module_paths + [
         project_conf_path,
         runtime_conf_path,
         deploy_env_conf_path,
         developer_conf_path
-    ])
+    ]
+
+    conf_include_string = wrap_included(ordered_project_files)
 
     print(f"\nconf_include_string:  {conf_include_string}\n")
 

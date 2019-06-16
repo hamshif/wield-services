@@ -2,6 +2,7 @@
 
 from wielder.util.arguer import get_kube_parser
 from wielder.wield.planner import WieldAction
+from wielder.wield.modality import WieldMode
 from wield_services.wield.deploy.util import get_conf
 from wield_services.deploy.slate.wield.slate_deploy import slate_wield
 from wield_services.deploy.whisperer.wield.whisperer_deploy import whisperer_wield
@@ -30,6 +31,10 @@ def micros_deploy():
         deploy_env=deploy_env
     )
 
+    mode = WieldMode(
+        runtime_env=runtime_env,
+        deploy_env=deploy_env)
+
     print(conf)
 
     init_functions = [slate_wield, whisperer_wield]
@@ -37,7 +42,13 @@ def micros_deploy():
     with concurrent.futures.ProcessPoolExecutor(len(init_functions)) as executor:
         rx.Observable.from_(init_functions).flat_map(
             lambda s: executor.submit(
-                s, conf, WieldAction.APPLY, auto_approve=True, service_only=False, observe_deploy=True
+                s,
+                mode=mode,
+                project_override=True,
+                action=WieldAction.APPLY,
+                auto_approve=True,
+                service_only=False,
+                observe_deploy=True
             )
         ).subscribe(output)
 

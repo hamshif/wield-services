@@ -23,24 +23,17 @@ def destroy():
     print(conf)
 
     slate_wield(
-        conf=conf,
         action=WieldAction.DELETE,
         auto_approve=True
     )
 
     whisperer_wield(
-        conf=conf,
         action=WieldAction.DELETE,
         auto_approve=True
     )
 
 
-def test():
-
-    destroy()
-
-
 if __name__ == "__main__":
 
-    test()
+    destroy()
 

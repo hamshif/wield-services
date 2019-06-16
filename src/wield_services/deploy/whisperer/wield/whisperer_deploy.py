@@ -5,8 +5,8 @@ from wielder.wield.planner import WieldAction
 from wield_services.wield.deploy.util import get_module_root
 
 
-# TODO code use of service only
-def whisperer_wield(conf, action=WieldAction.PLAN, auto_approve=False, service_only=False, observe_deploy=True):
+# TODO code or configure to use of service only
+def whisperer_wield(mode=None, project_override=False, action=WieldAction.PLAN, auto_approve=False, service_only=False, observe_deploy=True):
 
     # if conf:
     #     runtime_env = conf.runtime_env
@@ -19,7 +19,9 @@ def whisperer_wield(conf, action=WieldAction.PLAN, auto_approve=False, service_o
 
     service = WieldService(
         name='whisperer',
-        module_root=module_root
+        module_root=module_root,
+        mode=mode,
+        project_override=project_override
     )
 
     service.plan.wield(
@@ -30,9 +32,9 @@ def whisperer_wield(conf, action=WieldAction.PLAN, auto_approve=False, service_o
 
 def test():
 
-    whisperer_wield(WieldAction.PLAN)
+    whisperer_wield(action=WieldAction.PLAN)
 
-    whisperer_wield(WieldAction.APPLY)
+    whisperer_wield(action=WieldAction.APPLY)
 
     whisperer_wield(
         action=WieldAction.DELETE,
