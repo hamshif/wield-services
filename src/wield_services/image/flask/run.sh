@@ -1,13 +1,25 @@
 #!/bin/bash
 
+$PACKAGE_PY_PATH
 
-#while :
-#do
-#    sleep 100
-#done
+if [[ "$CONTAINER_MAINTAINANCE_MODE" == 'yup' ]] ; then
+    echo "Starting dud process to enable development debugging"
 
-./package_py.bash
-./src/whisperer/start_flask.bash
+    while :
+    do
+        sleep 100
+    done
+else
+
+    printenv
+    echo
+    echo "Starting the Flask server"
+    echo
+
+    $FLASK_INIT_PATH
+
+fi
+
 
 
 

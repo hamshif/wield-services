@@ -8,12 +8,6 @@ from wield_services.wield.deploy.util import get_module_root
 # TODO code or configure to use of service only
 def whisperer_wield(mode=None, project_override=False, action=WieldAction.PLAN, auto_approve=False, service_only=False, observe_deploy=True):
 
-    # if conf:
-    #     runtime_env = conf.runtime_env
-    # else:
-    #     # TODO get conf myself
-    #     runtime_env = 'docker'
-
     module_root = get_module_root(__file__)
     print(f"Module root: {module_root}")
 

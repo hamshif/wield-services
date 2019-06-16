@@ -26,7 +26,7 @@ def get_conf(runtime_env='docker', deploy_env='dev', module_paths=[]):
     """
     Gets the configuration from environment specific config.
     Config files gateways [specific include statements] have to be placed and named according to convention.
-    :param module_paths: paths to module files that get overridden
+    :param module_paths: paths to module files their values get overridden by project
     :param deploy_env: Development stage [dev, int, qa, stage, prod]
     :param runtime_env: Where the kubernetes cluster is running
     :return: pyhocon configuration tree object
@@ -90,7 +90,15 @@ def push_image(gcp_conf, name):
 
 # TODO add image version tags
 def pack_image(conf, name, push=False, force=False, image_root=None):
+    """
 
+    :param conf:
+    :param name:
+    :param push:
+    :param force: force creation of image if it doesn't exist in repo
+    :param image_root:
+    :return:
+    """
     gcp_conf = conf.providers.gcp
 
     if not image_root:
