@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-from wield_services.wield.deploy.util import pack_image, get_conf, get_module_root
+from wield_services.wield.deploy.util import pack_image, get_conf_context_project, get_module_root
 
 
 def slate_image():
 
-    conf = get_conf()
+    conf = get_conf_context_project()
 
     pack_image(
         conf,

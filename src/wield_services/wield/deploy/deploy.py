@@ -3,9 +3,10 @@
 from wielder.util.arguer import get_kube_parser
 from wielder.wield.planner import WieldAction
 from wielder.wield.modality import WieldMode
-from wield_services.wield.deploy.util import get_conf
+from wield_services.wield.deploy.util import get_conf_context_project
 from wield_services.deploy.slate.wield.slate_deploy import slate_wield
 from wield_services.deploy.whisperer.wield.whisperer_deploy import whisperer_wield
+from wield_services.wield.deploy.util import get_project_root
 
 import rx
 import concurrent.futures
@@ -26,14 +27,18 @@ def micros_deploy():
     runtime_env = kube_args.runtime_env if kube_args.runtime_env else 'docker'
     deploy_env = kube_args.deploy_env if kube_args.deploy_env else 'dev'
 
-    conf = get_conf(
+    project_root = get_project_root()
+
+    conf = get_conf_context_project(
+        project_root=project_root,
         runtime_env=runtime_env,
         deploy_env=deploy_env
     )
 
     mode = WieldMode(
         runtime_env=runtime_env,
-        deploy_env=deploy_env)
+        deploy_env=deploy_env
+    )
 
     print(conf)
 

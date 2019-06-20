@@ -2,9 +2,10 @@
 
 from wielder.util.arguer import get_kube_parser
 from wielder.wield.wield_service import WieldService
-
+from wielder.wield.modality import WieldMode
 from wielder.wield.planner import WieldAction
-from wield_services.wield.deploy.util import get_module_root
+from wielder.wield.wield_service import get_module_root
+from wield_services.wield.deploy.util import get_project_root
 
 
 # TODO code use of service only
@@ -13,9 +14,12 @@ def slate_wield(mode=None, project_override=False, action=WieldAction.PLAN, auto
     module_root = get_module_root(__file__)
     print(f"Module root: {module_root}")
 
+    project_root = get_project_root()
+
     service = WieldService(
         name='slate',
         module_root=module_root,
+        project_root=project_root,
         mode=mode,
         project_override=project_override
     )
@@ -28,11 +32,24 @@ def slate_wield(mode=None, project_override=False, action=WieldAction.PLAN, auto
 
 def test():
 
-    slate_wield(action=WieldAction.PLAN)
-
-    slate_wield(action=WieldAction.APPLY)
+    mode = WieldMode(
+        runtime_env='docker',
+        deploy_env='dev',
+        debug_mode=True
+    )
 
     slate_wield(
+        mode=mode,
+        action=WieldAction.PLAN
+    )
+
+    slate_wield(
+        mode=mode,
+        action=WieldAction.APPLY
+    )
+
+    slate_wield(
+        mode=mode,
         action=WieldAction.DELETE,
         auto_approve=False
     )
