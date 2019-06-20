@@ -37,7 +37,8 @@ def micros_deploy():
 
     mode = WieldMode(
         runtime_env=runtime_env,
-        deploy_env=deploy_env
+        deploy_env=deploy_env,
+        debug_mode=True
     )
 
     print(conf)

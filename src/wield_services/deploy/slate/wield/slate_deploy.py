@@ -9,7 +9,9 @@ from wield_services.wield.deploy.util import get_project_root
 
 
 # TODO code use of service only
-def slate_wield(mode=None, project_override=False, action=WieldAction.PLAN, auto_approve=False, service_only=False, observe_deploy=True):
+def slate_wield(
+        mode=None, project_override=False, action=WieldAction.PLAN,
+        auto_approve=False, service_only=False, observe_deploy=True):
 
     module_root = get_module_root(__file__)
     print(f"Module root: {module_root}")
