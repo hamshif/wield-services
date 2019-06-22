@@ -31,8 +31,7 @@ def slate_image():
         image_root=image_root,
         push=False,
         force=True,
-        tag='dev',
-        mount=True
+        tag='dev'
     )
 
     # push_image(conf)

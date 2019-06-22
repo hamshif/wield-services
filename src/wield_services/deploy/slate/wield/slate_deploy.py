@@ -38,7 +38,7 @@ def test():
         runtime_env='docker',
         deploy_env='dev',
         debug_mode=True,
-        local_mount=False
+        local_mount=True
     )
 
     slate_wield(
