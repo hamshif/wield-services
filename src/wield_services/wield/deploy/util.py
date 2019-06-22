@@ -7,6 +7,16 @@ from wielder.wield.wield_service import get_module_root, get_conf_context_projec
 RUNTIME_ENV = 'RUNTIME_ENV'
 
 
+def get_super_project_root():
+
+    super_project_root = get_project_root()
+
+    for i in range(5):
+        super_project_root = super_project_root[:super_project_root.rfind('/')]
+
+    return super_project_root
+
+
 def get_project_root():
 
     return get_module_root(__file__)
@@ -139,6 +149,8 @@ def test():
 
 
 if __name__ == "__main__":
+
+    get_super_project_root()
 
     test()
     # t_override()

@@ -5,7 +5,7 @@ from wielder.wield.wield_service import WieldService
 from wielder.wield.modality import WieldMode
 from wielder.wield.planner import WieldAction
 from wielder.wield.wield_service import get_module_root
-from wield_services.wield.deploy.util import get_project_root
+from wield_services.wield.deploy.util import get_project_root, get_super_project_root
 
 
 # TODO code use of service only
@@ -17,11 +17,13 @@ def slate_wield(
     print(f"Module root: {module_root}")
 
     project_root = get_project_root()
+    super_project_root = get_super_project_root()
 
     service = WieldService(
         name='slate',
         module_root=module_root,
         project_root=project_root,
+        super_project_root=super_project_root,
         mode=mode,
         project_override=project_override
     )
