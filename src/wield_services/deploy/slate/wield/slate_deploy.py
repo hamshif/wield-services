@@ -37,7 +37,8 @@ def test():
     mode = WieldMode(
         runtime_env='docker',
         deploy_env='dev',
-        debug_mode=True
+        debug_mode=True,
+        local_mount=False
     )
 
     slate_wield(
