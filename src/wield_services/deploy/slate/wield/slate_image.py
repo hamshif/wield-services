@@ -23,8 +23,6 @@ def slate_image():
 
     image_root = f'{module_root}image'
 
-    code_path = f'{image_root}/code_path'
-
     pack_image(
         conf,
         name='slate',
