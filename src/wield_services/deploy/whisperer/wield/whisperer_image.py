@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-from wielder.util.imager import pack_image, replace_dir_contents
+from wielder.util.imager import pack_image, push_image, replace_dir_contents
 from wield_services.wield.deploy import util as U
 
 
-def whisperer_image():
+def whisperer_image(force_last=True, push=False):
 
     # TODO tag from git commit in case its not dev
-    tag='dev'
+    tag = 'dev'
 
     project_root = U.get_project_root()
     conf = U.get_conf_context_project(project_root=project_root)
@@ -51,13 +51,19 @@ def whisperer_image():
         name='whisperer',
         image_root=image_root,
         push=False,
-        force=True,
+        force=force_last,
         tag=tag
     )
 
-    # push_image(conf)
+    gcp_conf = conf.providers.gcp
+
+    if push:
+        push_image(gcp_conf, name='whisperer', group='wielder', tag=tag)
 
 
 if __name__ == "__main__":
 
-    whisperer_image()
+    whisperer_image(push=False)
+
+    whisperer_image(push=True, force_last=False)
+
