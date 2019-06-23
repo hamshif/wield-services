@@ -4,7 +4,7 @@ from wielder.wield.wield_service import WieldService
 from wielder.wield.modality import WieldMode
 from wielder.wield.planner import WieldAction
 from wield_services.wield.deploy.util import get_module_root
-from wield_services.wield.deploy.util import get_project_root
+from wield_services.wield.deploy.util import get_project_root, get_super_project_root
 
 
 # TODO code or configure to use of service only
@@ -14,11 +14,13 @@ def whisperer_wield(mode=None, project_override=False, action=WieldAction.PLAN, 
     print(f"Module root: {module_root}")
 
     project_root = get_project_root()
+    super_project_root = get_super_project_root()
 
     service = WieldService(
         name='whisperer',
         module_root=module_root,
         project_root=project_root,
+        super_project_root=super_project_root,
         mode=mode,
         project_override=project_override
     )
@@ -34,7 +36,8 @@ def test():
     mode = WieldMode(
         runtime_env='docker',
         deploy_env='dev',
-        debug_mode=True
+        debug_mode=True,
+        local_mount=True
     )
 
     whisperer_wield(

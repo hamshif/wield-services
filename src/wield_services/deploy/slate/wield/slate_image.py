@@ -15,7 +15,7 @@ def slate_image():
         name='py37',
         image_root=get_project_image_root(),
         push=False,
-        force=False,
+        force=True,
         tag='dev'
     )
 
