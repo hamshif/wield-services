@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from wielder.util.imager import pack_image, push_image, replace_dir_contents
-from wield_services.wield.deploy import util as U
+from wield_services.wield.deploy import util as u
 
 
 def whisperer_image(force_last=True, push=False):
@@ -9,9 +9,9 @@ def whisperer_image(force_last=True, push=False):
     # TODO tag from git commit in case its not dev
     tag = 'dev'
 
-    project_root = U.get_project_root()
-    conf = U.get_conf_context_project(project_root=project_root)
-    image_root = U.get_project_image_root()
+    project_root = u.get_project_root()
+    conf = u.get_conf_context_project(project_root=project_root)
+    image_root = u.get_project_image_root()
 
     pack_image(
         conf,
@@ -31,11 +31,11 @@ def whisperer_image(force_last=True, push=False):
         tag=tag
     )
 
-    super_project_root = U.get_super_project_root()
+    super_project_root = u.get_super_project_root()
     origin_path = f'{super_project_root}/micros/flask/whisperer'
     origin_regex = 'package_py.bash'
 
-    module_root = U.get_module_root(__file__)
+    module_root = u.get_module_root(__file__)
     image_root = f'{module_root}image'
     destination_path = f'{image_root}/whisperer'
 
