@@ -34,13 +34,13 @@ def slate_wield(
     )
 
 
-def test():
+def test(runtime_env='docker', local_mount=False):
 
     mode = WieldMode(
-        runtime_env='docker',
+        runtime_env=runtime_env,
         deploy_env='dev',
         debug_mode=True,
-        local_mount=True
+        local_mount=local_mount
     )
 
     slate_wield(
@@ -64,4 +64,7 @@ if __name__ == "__main__":
 
     kube_parser = get_kube_parser()
     kube_args = kube_parser.parse_args()
-    test()
+    test(
+        runtime_env=kube_args.runtime_env,
+        local_mount=True
+    )
