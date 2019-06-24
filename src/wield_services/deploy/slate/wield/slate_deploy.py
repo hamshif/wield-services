@@ -64,6 +64,7 @@ if __name__ == "__main__":
 
     kube_parser = get_kube_parser()
     kube_args = kube_parser.parse_args()
+
     test(
         runtime_env=kube_args.runtime_env,
         local_mount=True
