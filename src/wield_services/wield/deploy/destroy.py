@@ -6,6 +6,7 @@ from wield_services.wield.deploy.util import get_conf_context_project
 from wield_services.deploy.slate.wield.slate_deploy import slate_wield
 from wield_services.deploy.whisperer.wield.whisperer_deploy import whisperer_wield
 from wield_services.wield.deploy.util import get_project_root
+from wielder.wield.modality import WieldMode
 
 
 def destroy():
@@ -26,14 +27,23 @@ def destroy():
 
     print(conf)
 
+    mode = WieldMode(
+        runtime_env=runtime_env,
+        deploy_env=deploy_env,
+        debug_mode=True,
+        local_mount=False
+    )
+
     slate_wield(
         action=WieldAction.DELETE,
-        auto_approve=True
+        auto_approve=True,
+        mode=mode
     )
 
     whisperer_wield(
         action=WieldAction.DELETE,
-        auto_approve=True
+        auto_approve=True,
+        mode=mode
     )
 
 

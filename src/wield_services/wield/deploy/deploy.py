@@ -19,7 +19,7 @@ def output(result):
     print(result)
 
 
-def micros_deploy():
+def micros_deploy(local_mount=False):
 
     kube_parser = get_kube_parser()
     kube_args = kube_parser.parse_args()
@@ -39,7 +39,7 @@ def micros_deploy():
         runtime_env=runtime_env,
         deploy_env=deploy_env,
         debug_mode=True,
-        local_mount=True
+        local_mount=local_mount
     )
 
     print(conf)
@@ -80,7 +80,7 @@ def micros_deploy():
 
 def test():
 
-    micros_deploy()
+    micros_deploy(local_mount=False)
 
 
 if __name__ == "__main__":
