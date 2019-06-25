@@ -12,5 +12,5 @@ def hello():
 
 def show_something():
     r = randint(0, 9)
-    text = f"\nNaknik\nWielding Slate\nHello World!\n{r}"
+    text = f"\nNaknik Yerkarak\nWielding Slate\nHello World!\n{r}"
     return text

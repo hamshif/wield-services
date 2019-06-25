@@ -38,7 +38,8 @@ def micros_deploy():
     mode = WieldMode(
         runtime_env=runtime_env,
         deploy_env=deploy_env,
-        debug_mode=True
+        debug_mode=True,
+        local_mount=True
     )
 
     print(conf)
@@ -59,13 +60,21 @@ def micros_deploy():
         ).subscribe(output)
 
     # slate_wield(
+    #     mode=mode,
+    #     project_override=True,
     #     action=WieldAction.APPLY,
-    #     auto_approve=True
+    #     auto_approve=True,
+    #     service_only=False,
+    #     observe_deploy=True
     # )
-    #
+
     # whisperer_wield(
+    #     mode=mode,
+    #     project_override=True,
     #     action=WieldAction.APPLY,
-    #     auto_approve=True
+    #     auto_approve=True,
+    #     service_only=False,
+    #     observe_deploy=True
     # )
 
 
