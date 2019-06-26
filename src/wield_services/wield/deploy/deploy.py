@@ -12,6 +12,12 @@ import rx
 import concurrent.futures
 
 
+service_call_map = {
+    'slate': slate_wield,
+    'whisperer': whisperer_wield
+}
+
+
 def output(result):
 
     print(f"Type of result: {type(result)}")
@@ -44,7 +50,9 @@ def micros_deploy(local_mount=False):
 
     print(conf)
 
-    init_functions = [slate_wield, whisperer_wield]
+    deployments = conf.deployments
+
+    init_functions = [service_call_map[deploy] for deploy in deployments]
 
     with concurrent.futures.ProcessPoolExecutor(len(init_functions)) as executor:
         rx.Observable.from_(init_functions).flat_map(
@@ -52,7 +60,7 @@ def micros_deploy(local_mount=False):
                 s,
                 mode=mode,
                 project_override=True,
-                action=WieldAction.APPLY,
+                action=WieldAction.PLAN,
                 auto_approve=True,
                 service_only=False,
                 observe_deploy=True
