@@ -24,8 +24,8 @@ def micros_deploy(local_mount=False):
     kube_parser = get_kube_parser()
     kube_args = kube_parser.parse_args()
 
-    runtime_env = kube_args.runtime_env if kube_args.runtime_env else 'docker'
-    deploy_env = kube_args.deploy_env if kube_args.deploy_env else 'dev'
+    runtime_env = kube_args.runtime_env
+    deploy_env = kube_args.deploy_env
 
     project_root = get_project_root()
 
