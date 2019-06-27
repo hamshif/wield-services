@@ -2,7 +2,7 @@
 
 from wielder.util.arguer import get_kube_parser
 from wielder.wield.planner import WieldAction
-from wielder.wield.modality import WieldMode
+from wielder.wield.modality import WieldMode, WieldServiceMode
 from wield_services.wield.deploy.util import get_conf_context_project
 from wield_services.deploy.slate.wield.slate_deploy import slate_wield
 from wield_services.deploy.whisperer.wield.whisperer_deploy import whisperer_wield
@@ -43,7 +43,13 @@ def micros_deploy(local_mount=False):
 
     mode = WieldMode(
         runtime_env=runtime_env,
-        deploy_env=deploy_env,
+        deploy_env=deploy_env
+    )
+
+    # TODO service mode for each module from config separately
+    service_mode = WieldServiceMode(
+        observe=True,
+        service_only=True,
         debug_mode=True,
         local_mount=local_mount
     )
@@ -59,11 +65,10 @@ def micros_deploy(local_mount=False):
             lambda s: executor.submit(
                 s,
                 mode=mode,
+                service_mode=service_mode,
                 project_override=True,
                 action=WieldAction.PLAN,
-                auto_approve=True,
-                service_only=False,
-                observe_deploy=True
+                auto_approve=True
             )
         ).subscribe(output)
 
