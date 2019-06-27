@@ -4,23 +4,16 @@ from wielder.util.arguer import get_kube_parser
 from wielder.wield.wield_service import WieldService
 from wielder.wield.modality import WieldMode, WieldServiceMode
 from wielder.wield.planner import WieldAction
-from wielder.wield.wield_service import get_module_root
-from wield_services.wield.deploy.util import get_project_root, get_super_project_root
+from wield_services.wield.deploy.util import get_locale
 
 
 def slate_wield(mode=None, service_mode=None, project_override=False, action=WieldAction.PLAN, auto_approve=False):
 
-    module_root = get_module_root(__file__)
-    print(f"Module root: {module_root}")
-
-    project_root = get_project_root()
-    super_project_root = get_super_project_root()
+    locale = get_locale(__file__)
 
     service = WieldService(
         name='slate',
-        module_root=module_root,
-        project_root=project_root,
-        super_project_root=super_project_root,
+        locale=locale,
         mode=mode,
         service_mode=service_mode,
         project_override=project_override

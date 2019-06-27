@@ -3,6 +3,8 @@ import os
 from wielder.util.arguer import get_kube_parser
 from wielder.util.commander import async_cmd
 from wielder.wield.wield_service import get_module_root, get_conf_context_project
+from wielder.wield.locale import Locale
+
 
 RUNTIME_ENV = 'RUNTIME_ENV'
 
@@ -31,14 +33,22 @@ def get_project_image_root():
     return image_root
 
 
-# TODO untested
-def push_image(gcp_conf, name):
+def get_locale(__file__1):
 
-    # TODO repo as args
-    os.system(
-        f'gcloud docker -- push {gcp_conf.image_repo_zone}/{gcp_conf.project}/{name}:latest;'
-        f'gcloud container images list --repository={gcp_conf.image_repo_zone}/{gcp_conf.project}/rtp/{name};'
+    module_root = get_module_root(__file__1)
+    print(f"Module root: {module_root}")
+
+    project_root = get_project_root()
+    super_project_root = get_super_project_root()
+
+    locale = Locale(
+        project_root=project_root,
+        super_project_root=super_project_root,
+        module_root=module_root,
+        code_path=None
     )
+
+    return locale
 
 
 # TODO add framework tests to project

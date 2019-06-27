@@ -49,7 +49,7 @@ def micros_deploy(local_mount=False):
     # TODO service mode for each module from config separately
     service_mode = WieldServiceMode(
         observe=True,
-        service_only=True,
+        service_only=False,
         debug_mode=True,
         local_mount=local_mount
     )
@@ -67,7 +67,7 @@ def micros_deploy(local_mount=False):
                 mode=mode,
                 service_mode=service_mode,
                 project_override=True,
-                action=WieldAction.PLAN,
+                action=WieldAction.APPLY,
                 auto_approve=True
             )
         ).subscribe(output)
