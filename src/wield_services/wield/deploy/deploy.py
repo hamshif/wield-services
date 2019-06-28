@@ -2,7 +2,7 @@
 
 from wielder.util.arguer import get_kube_parser
 from wielder.wield.planner import WieldAction
-from wielder.wield.modality import WieldMode, WieldServiceMode
+from wielder.wield.modality import WieldServiceMode
 from wielder.wield.wield_service import get_wield_mode
 from wield_services.wield.deploy.util import get_conf_context_project
 from wield_services.deploy.slate.wield.slate_deploy import slate_wield
@@ -26,7 +26,7 @@ def output(result):
     print(result)
 
 
-def micros_deploy(local_mount=False):
+def micros_wield(parallel=True, action=WieldAction.APPLY):
 
     kube_parser = get_kube_parser()
     kube_args = kube_parser.parse_args()
@@ -48,54 +48,55 @@ def micros_deploy(local_mount=False):
         deploy_env=wield_mode.deploy_env
     )
 
-    # TODO service mode for each module from config separately
-    service_mode = WieldServiceMode(
-        observe=True,
-        service_only=False,
-        debug_mode=True,
-        local_mount=local_mount
-    )
-
     print(conf)
 
     deployments = conf.deployments
 
-    init_functions = [service_call_map[deploy] for deploy in deployments]
+    init_tuples = []
 
-    with concurrent.futures.ProcessPoolExecutor(len(init_functions)) as executor:
-        rx.Observable.from_(init_functions).flat_map(
-            lambda s: executor.submit(
-                s,
+    for deploy in deployments:
+
+        s_mode = conf[deploy].WieldServiceMode
+
+        mode = WieldServiceMode(
+            observe=s_mode.observe,
+            service_only=s_mode.service_only,
+            debug_mode=s_mode.debug_mode,
+            local_mount=s_mode.local_mount
+        )
+
+        init_tuples.append((service_call_map[deploy], mode))
+
+    if parallel:
+
+        with concurrent.futures.ProcessPoolExecutor(len(init_tuples)) as executor:
+            rx.Observable.from_(init_tuples).flat_map(
+                lambda s: executor.submit(
+                    s[0],
+                    mode=wield_mode,
+                    service_mode=s[1],
+                    project_override=True,
+                    action=action,
+                    auto_approve=True
+                )
+            ).subscribe(output)
+
+    else:
+
+        for t in init_tuples:
+
+            t[0](
                 mode=wield_mode,
-                service_mode=service_mode,
+                service_mode=t[1],
                 project_override=True,
-                action=WieldAction.APPLY,
+                action=action,
                 auto_approve=True
             )
-        ).subscribe(output)
-
-    # slate_wield(
-    #     mode=mode,
-    #     project_override=True,
-    #     action=WieldAction.APPLY,
-    #     auto_approve=True,
-    #     service_only=False,
-    #     observe_deploy=True
-    # )
-
-    # whisperer_wield(
-    #     mode=mode,
-    #     project_override=True,
-    #     action=WieldAction.APPLY,
-    #     auto_approve=True,
-    #     service_only=False,
-    #     observe_deploy=True
-    # )
 
 
 def test():
 
-    micros_deploy(local_mount=False)
+    micros_wield(parallel=True)
 
 
 if __name__ == "__main__":
