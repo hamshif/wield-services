@@ -3,6 +3,7 @@
 from wielder.util.arguer import get_kube_parser
 from wielder.wield.planner import WieldAction
 from wielder.wield.modality import WieldMode, WieldServiceMode
+from wielder.wield.wield_service import get_wield_mode
 from wield_services.wield.deploy.util import get_conf_context_project
 from wield_services.deploy.slate.wield.slate_deploy import slate_wield
 from wield_services.deploy.whisperer.wield.whisperer_deploy import whisperer_wield
@@ -35,15 +36,16 @@ def micros_deploy(local_mount=False):
 
     project_root = get_project_root()
 
-    conf = get_conf_context_project(
+    wield_mode = get_wield_mode(
         project_root=project_root,
         runtime_env=runtime_env,
         deploy_env=deploy_env
     )
 
-    mode = WieldMode(
-        runtime_env=runtime_env,
-        deploy_env=deploy_env
+    conf = get_conf_context_project(
+        project_root=project_root,
+        runtime_env=wield_mode.runtime_env,
+        deploy_env=wield_mode.deploy_env
     )
 
     # TODO service mode for each module from config separately
@@ -64,7 +66,7 @@ def micros_deploy(local_mount=False):
         rx.Observable.from_(init_functions).flat_map(
             lambda s: executor.submit(
                 s,
-                mode=mode,
+                mode=wield_mode,
                 service_mode=service_mode,
                 project_override=True,
                 action=WieldAction.APPLY,
