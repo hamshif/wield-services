@@ -56,16 +56,16 @@ def micros_wield(parallel=True, action=WieldAction.APPLY):
 
     for deploy in deployments:
 
-        s_mode = conf[deploy].WieldServiceMode
+        conf_service_mode = conf[deploy].WieldServiceMode
 
-        mode = WieldServiceMode(
-            observe=s_mode.observe,
-            service_only=s_mode.service_only,
-            debug_mode=s_mode.debug_mode,
-            local_mount=s_mode.local_mount
+        service_mode = WieldServiceMode(
+            observe=conf_service_mode.observe,
+            service_only=conf_service_mode.service_only,
+            debug_mode=conf_service_mode.debug_mode,
+            local_mount=conf_service_mode.local_mount
         )
 
-        init_tuples.append((service_call_map[deploy], mode))
+        init_tuples.append((service_call_map[deploy], service_mode))
 
     if parallel:
 
