@@ -1,26 +1,18 @@
 #!/usr/bin/env python
 
-from wielder.util.arguer import get_kube_parser
+from wielder.util.arguer import ensure_action_and_mode_from_args
 from wielder.wield.wield_service import WieldService
-from wielder.wield.modality import WieldMode, WieldServiceMode
+from wielder.wield.modality import WieldServiceMode
 from wielder.wield.planner import WieldAction
 from wield_services.wield.deploy.util import get_locale
 
 
 def slate_wield(mode=None, service_mode=None, project_override=False,
-                action=WieldAction.PLAN, auto_approve=False, local_mount=False):
+                action=None, auto_approve=False, local_mount=False):
 
     locale = get_locale(__file__)
 
-    if not mode:
-
-        kube_parser = get_kube_parser()
-        kube_args = kube_parser.parse_args()
-
-        mode = WieldMode(
-            runtime_env=kube_args.runtime_env,
-            deploy_env=kube_args.deploy_env
-        )
+    action, mode = ensure_action_and_mode_from_args(action, mode)
 
     if not service_mode:
 
@@ -64,6 +56,10 @@ def test(local_mount=False):
 
 
 if __name__ == "__main__":
+
+    slate_wield(
+        local_mount=True
+    )
 
     test(
         local_mount=True

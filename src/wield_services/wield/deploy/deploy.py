@@ -26,10 +26,13 @@ def output(result):
     print(result)
 
 
-def micros_wield(parallel=True, action=WieldAction.APPLY):
+def micros_wield(parallel=True, action=None):
 
     kube_parser = get_kube_parser()
     kube_args = kube_parser.parse_args()
+
+    if not action:
+        action = kube_args.wield
 
     runtime_env = kube_args.runtime_env
     deploy_env = kube_args.deploy_env
