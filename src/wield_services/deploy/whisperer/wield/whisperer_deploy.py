@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from wielder.util.arguer import ensure_action_and_mode_from_args
-from wielder.wield.wield_service import WieldService
+from wielder.wield.wield_project import WieldService
 from wielder.wield.modality import WieldServiceMode
 from wielder.wield.planner import WieldAction
 from wield_services.wield.deploy.util import get_locale

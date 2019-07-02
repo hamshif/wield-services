@@ -2,7 +2,7 @@
 import os
 from wielder.util.arguer import get_kube_parser
 from wielder.util.commander import async_cmd
-from wielder.wield.wield_service import get_module_root, get_conf_context_project
+from wielder.wield.wield_project import get_module_root, get_conf_context_project
 from wielder.wield.locale import Locale
 
 

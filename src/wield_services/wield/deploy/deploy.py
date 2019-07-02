@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-from wielder.util.arguer import get_kube_parser
-from wielder.wield.planner import WieldAction
+from wielder.util.arguer import get_kube_parser, ensure_action_and_mode_from_args
 from wielder.wield.modality import WieldServiceMode
-from wielder.wield.wield_service import get_wield_mode
+from wielder.wield.planner import WieldAction
+from wielder.wield.wield_project import WieldProject, get_wield_mode
 from wield_services.wield.deploy.util import get_conf_context_project
+from wield_services.wield.deploy.util import get_locale
 from wield_services.deploy.slate.wield.slate_deploy import slate_wield
 from wield_services.deploy.whisperer.wield.whisperer_deploy import whisperer_wield
 from wield_services.wield.deploy.util import get_project_root
@@ -52,6 +53,24 @@ def micros_wield(parallel=True, action=None):
     )
 
     print(conf)
+
+    locale = get_locale(__file__)
+
+    action, wield_mode = ensure_action_and_mode_from_args(action, wield_mode)
+
+    print('\nAttempting to create project level kubernetes resources e.g. namespaces\n')
+
+    project = WieldProject(
+        name='project',
+        locale=locale,
+        conf=conf,
+        mode=wield_mode
+    )
+
+    project.plan.wield(
+        action=action,
+        auto_approve=True
+    )
 
     deployments = conf.deployments
 
