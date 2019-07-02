@@ -21,14 +21,14 @@ def whisperer_wield(mode=None, service_mode=None, project_override=False,
             service_only=True,
             debug_mode=True,
             local_mount=local_mount,
+            project_override=project_override
         )
 
     service = WieldService(
         name='whisperer',
         locale=locale,
         mode=mode,
-        service_mode=service_mode,
-        project_override=project_override
+        service_mode=service_mode
     )
 
     service.plan.wield(

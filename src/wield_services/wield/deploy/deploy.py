@@ -27,7 +27,7 @@ def output(result):
     print(result)
 
 
-def micros_wield(parallel=True, action=None):
+def micros_wield(parallel=True, action=None, delete_project_res=False):
 
     kube_parser = get_kube_parser()
     kube_args = kube_parser.parse_args()
@@ -67,10 +67,13 @@ def micros_wield(parallel=True, action=None):
         mode=wield_mode
     )
 
-    project.plan.wield(
-        action=action,
-        auto_approve=True
-    )
+    if action == WieldAction.DELETE and not delete_project_res:
+        print('skipping deletion of project level cluster resources such as namespaces')
+    else:
+        project.plan.wield(
+            action=action,
+            auto_approve=True
+        )
 
     deployments = conf.deployments
 
