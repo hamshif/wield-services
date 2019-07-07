@@ -17,8 +17,6 @@ def slate_wield(mode=None, service_mode=None, project_override=False,
     if not service_mode:
 
         service_mode = WieldServiceMode(
-            observe=True,
-            service_only=True,
             debug_mode=True,
             local_mount=local_mount,
             project_override=project_override
@@ -29,6 +27,12 @@ def slate_wield(mode=None, service_mode=None, project_override=False,
         locale=locale,
         mode=mode,
         service_mode=service_mode
+    )
+
+    service.plan.wield(
+        action=action,
+        auto_approve=auto_approve,
+        service_only=True
     )
 
     service.plan.wield(
@@ -57,10 +61,10 @@ def test(local_mount=False):
 
 if __name__ == "__main__":
 
-    slate_wield(
-        local_mount=True
-    )
+    # slate_wield(
+    #     local_mount=True
+    # )
 
     test(
-        local_mount=True
+        local_mount=False
     )
