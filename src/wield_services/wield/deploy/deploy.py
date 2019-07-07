@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from wielder.util.arguer import get_kube_parser, ensure_action_and_mode_from_args
+from wielder.util.arguer import get_kube_parser, ensure_none_variables_from_args
 from wielder.wield.modality import WieldServiceMode
 from wielder.wield.planner import WieldAction
 from wielder.wield.wield_project import WieldProject, get_wield_mode
@@ -56,7 +56,7 @@ def micros_wield(parallel=True, action=None, delete_project_res=False):
 
     locale = get_locale(__file__)
 
-    action, wield_mode = ensure_action_and_mode_from_args(action, wield_mode)
+    action, wield_mode, a, b, c = ensure_none_variables_from_args(action, wield_mode, None, None, None, None)
 
     print('\nAttempting to create project level kubernetes resources e.g. namespaces\n')
 
