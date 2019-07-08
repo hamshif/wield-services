@@ -1,21 +1,45 @@
 #!/usr/bin/env python
 
+from wielder.util.arguer import ensure_none_variables_from_args
+from wielder.wield.wield_service import WieldService
 from wielder.wield.modality import WieldServiceMode
 from wielder.wield.planner import WieldAction
 from wielder.wield.wield_project import WieldProject
-from wield_services.wield.deploy.util import get_locale
-from wield_services.deploy.slate.wield.slate_deploy import slate_wield
-from wield_services.deploy.whisperer.wield.whisperer_deploy import whisperer_wield
+from wield_services.wield.deploy.util import get_locale, get_module_locale
 from wield_services.wield.deploy.configurer import get_project_conf
 
 import rx
 import concurrent.futures
 
 
-service_call_map = {
-    'slate': slate_wield,
-    'whisperer': whisperer_wield
-}
+def launch_service(
+        name, mode=None, service_mode=None, project_override=False,
+        action=None, auto_approve=False, service_only=False,
+        enable_debug=None, local_mount=None):
+
+    svc_locale = get_module_locale(name)
+
+    action, mode, enable_debug, local_mount, service_mode = ensure_none_variables_from_args(
+        action=action,
+        mode=mode,
+        enable_debug=enable_debug,
+        local_mount=local_mount,
+        service_mode=service_mode,
+        project_override=project_override
+    )
+
+    service = WieldService(
+        name=name,
+        locale=svc_locale,
+        mode=mode,
+        service_mode=service_mode,
+    )
+
+    service.plan.wield(
+        action=action,
+        auto_approve=auto_approve,
+        service_only=service_only
+    )
 
 
 def output(result):
@@ -63,7 +87,7 @@ def micros_wield(parallel=True, action=None, delete_project_res=False):
             local_mount=conf_service_mode.local_mount
         )
 
-        init_tuples.append((service_call_map[deploy], service_mode))
+        init_tuples.append((launch_service, deploy, service_mode))
 
     if parallel:
 
@@ -71,8 +95,9 @@ def micros_wield(parallel=True, action=None, delete_project_res=False):
             rx.Observable.from_(init_tuples).flat_map(
                 lambda s: executor.submit(
                     s[0],
+                    name=s[1],
                     mode=wield_mode,
-                    service_mode=s[1],
+                    service_mode=s[2],
                     project_override=True,
                     action=action,
                     auto_approve=True
@@ -84,8 +109,9 @@ def micros_wield(parallel=True, action=None, delete_project_res=False):
         for t in init_tuples:
 
             t[0](
+                name=t[1],
                 mode=wield_mode,
-                service_mode=t[1],
+                service_mode=t[2],
                 project_override=True,
                 action=action,
                 auto_approve=True

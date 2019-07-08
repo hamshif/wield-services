@@ -33,6 +33,15 @@ def get_project_image_root():
     return image_root
 
 
+def get_project_deploy_root():
+
+    module_root = get_module_root(__file__)[:-1]
+
+    image_root = module_root[:module_root.rfind('/') + 1] + 'deploy'
+
+    return image_root
+
+
 def get_locale(__file__1):
 
     module_root = get_module_root(__file__1)
@@ -40,6 +49,26 @@ def get_locale(__file__1):
 
     project_root = get_project_root()
     super_project_root = get_super_project_root()
+
+    locale = Locale(
+        project_root=project_root,
+        super_project_root=super_project_root,
+        module_root=module_root,
+        code_path=None
+    )
+
+    return locale
+
+
+def get_module_locale(module_name):
+
+    project_root = get_project_root()
+    super_project_root = get_super_project_root()
+
+    deploy_root = get_project_deploy_root()
+
+    module_root = f'{deploy_root}/{module_name}/'
+    print(f"Module root: {module_root}")
 
     locale = Locale(
         project_root=project_root,
@@ -66,6 +95,8 @@ def test():
 
 
 if __name__ == "__main__":
+
+    get_module_locale('slate')
 
     get_super_project_root()
 

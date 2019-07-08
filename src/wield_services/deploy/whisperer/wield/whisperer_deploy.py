@@ -5,21 +5,17 @@ from wielder.wield.wield_service import WieldService
 from wield_services.wield.deploy.util import get_locale
 
 
-#  TODO abstract this it is very repetitive
-def whisperer_wield(
-        mode=None, service_mode=None, project_override=False,
-        action=None, auto_approve=False, service_only=False,
-        enable_debug=None, local_mount=None):
+def whisperer_wield(action=None, auto_approve=False, service_only=False):
 
     locale = get_locale(__file__)
 
     action, mode, enable_debug, local_mount, service_mode = ensure_none_variables_from_args(
         action=action,
-        mode=mode,
-        enable_debug=enable_debug,
-        local_mount=local_mount,
-        service_mode=service_mode,
-        project_override=project_override
+        mode=None,
+        enable_debug=None,
+        local_mount=None,
+        service_mode=None,
+        project_override=None
     )
 
     service = WieldService(
