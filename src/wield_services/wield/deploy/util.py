@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 from wielder.util.arguer import get_kube_parser
-from wielder.wield.wield_project import get_module_root, get_conf_context_project
+from wielder.wield.wield_project import get_conf_context_project
+from wielder.wield.wield_service import get_module_root
 from wielder.wield.locale import Locale
 
 

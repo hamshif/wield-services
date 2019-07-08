@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from wielder.util.arguer import ensure_none_variables_from_args
-from wielder.wield.wield_project import WieldService
+from wielder.wield.wield_service import WieldService
 from wield_services.wield.deploy.util import get_locale
 
 
