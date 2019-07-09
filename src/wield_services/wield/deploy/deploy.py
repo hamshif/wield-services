@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-from wielder.util.arguer import ensure_none_variables_from_args
+from wielder.util.arguer import replace_none_vars_from_args
 from wielder.wield.wield_service import WieldService
 from wielder.wield.modality import WieldServiceMode
 from wielder.wield.planner import WieldAction
 from wielder.wield.wield_project import WieldProject
 from wield_services.wield.deploy.util import get_locale, get_module_locale
-from wield_services.wield.deploy.configurer import get_project_conf
+from wield_services.wield.deploy.configurer import get_project_deploy_mode
 
 import rx
 import concurrent.futures
@@ -19,7 +19,7 @@ def launch_service(
 
     svc_locale = get_module_locale(name)
 
-    action, mode, enable_debug, local_mount, service_mode = ensure_none_variables_from_args(
+    action, mode, enable_debug, local_mount, service_mode = replace_none_vars_from_args(
         action=action,
         mode=mode,
         enable_debug=enable_debug,
@@ -51,7 +51,7 @@ def output(result):
 
 def micros_wield(parallel=True, action=None, delete_project_res=False):
 
-    wield_mode, conf, action = get_project_conf(action)
+    wield_mode, conf, action = get_project_deploy_mode(action)
 
     locale = get_locale(__file__)
 

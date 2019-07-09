@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from wielder.util.arguer import ensure_none_variables_from_args
+from wielder.util.arguer import replace_none_vars_from_args
 from wielder.wield.wield_service import WieldService
 from wield_services.wield.deploy.util import get_locale
 
@@ -9,7 +9,7 @@ def whisperer_wield(action=None, auto_approve=False, service_only=False):
 
     locale = get_locale(__file__)
 
-    action, mode, enable_debug, local_mount, service_mode = ensure_none_variables_from_args(
+    action, mode, enable_debug, local_mount, service_mode = replace_none_vars_from_args(
         action=action,
         mode=None,
         enable_debug=None,

@@ -6,7 +6,7 @@ from wield_services.wield.deploy.util import get_project_root
 from wield_services.wield.deploy.util import get_conf_context_project
 
 
-def get_project_conf(action=None):
+def get_project_deploy_mode(action=None):
 
     kube_parser = get_kube_parser()
     kube_args = kube_parser.parse_args()
