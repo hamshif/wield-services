@@ -39,12 +39,20 @@ if __name__ == "__main__":
     else:
         _outside_call = False
 
-    server_reply = call_service(payload={'key': 'value'}, outside_call=_outside_call)
+    _service_name = f'whisperer.wielder-services.svc.cluster.local'
+
+    # _service_name = 'whisperer'
+
+    server_reply = call_service(
+        payload={'key': 'value'},
+        outside_call=_outside_call,
+        service_name=_service_name
+    )
 
     print(f'a is: {server_reply}')
 
-    server_reply = call_service(payload={'key': 'value'}, outside_call=_outside_call, index='gossip')
+    # server_reply = call_service(payload={'key': 'value'}, outside_call=_outside_call, index='gossip')
+    #
+    # j = json.loads(server_reply)
 
-    j = json.loads(server_reply)
-
-    print(f'text is: {j["text"]}')
+    # print(f'text is: {j["text"]}')
