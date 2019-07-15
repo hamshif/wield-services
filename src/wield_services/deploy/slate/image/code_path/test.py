@@ -39,6 +39,12 @@ if __name__ == "__main__":
     else:
         _outside_call = False
 
-    a = call_service(payload={'key': 'value'}, outside_call=_outside_call)
+    server_reply = call_service(payload={'key': 'value'}, outside_call=_outside_call)
 
-    print(f'a is: {a}')
+    print(f'a is: {server_reply}')
+
+    server_reply = call_service(payload={'key': 'value'}, outside_call=_outside_call, index='gossip')
+
+    j = json.loads(server_reply)
+
+    print(f'text is: {j["text"]}')
