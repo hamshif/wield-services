@@ -82,6 +82,8 @@ For IDE support
   1. paste copied python path path
   1. apply / ok ...
   1. wait a bit for intellij to process.
+  1. add module dependency on Wielder.
+  
   
 
 

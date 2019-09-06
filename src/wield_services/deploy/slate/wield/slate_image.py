@@ -55,5 +55,5 @@ if __name__ == "__main__":
 
     slate_image(push=False)
 
-    slate_image(force_last=False, push=True)
+    # slate_image(force_last=False, push=True)
 

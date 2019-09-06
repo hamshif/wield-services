@@ -65,5 +65,5 @@ if __name__ == "__main__":
 
     whisperer_image(push=False)
 
-    whisperer_image(push=True, force_last=False)
+    # whisperer_image(push=True, force_last=False)
 
