@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: 
+  name: pep
+  namespace: wielder-services
+data: 
+  KUBE_CONTEXT: docker-desktop
+  DEPLOY_ENV: dev
+  RUNTIME_ENV: docker
+  CONTAINER_MAINTAINANCE_MODE: yup
+  DEBUG_MODE: nope
+  FLASK_APP: app
+  FLASK_ENV: development

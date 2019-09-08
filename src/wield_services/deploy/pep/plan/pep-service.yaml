@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata: 
+  name: pep
+  namespace: wielder-services
+  labels: 
+    app: pep
+    app_group: wield_services
+spec: 
+  type: LoadBalancer
+  ports: 
+    - 
+      name: pep
+      nodePort: 30004
+      port: 8004
+      targetPort: 8004
+  selector: 
+    app: pep
+    app_group: wield_services
+  externalTrafficPolicy: Cluster
