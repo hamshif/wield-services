@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from wielder.util.arguer import replace_none_vars_from_args
+from wielder.wield.enumerator import WieldAction
 from wielder.wield.wield_service import WieldService
 from wield_services.wield.deploy.util import get_locale
 
@@ -34,5 +35,6 @@ def slate_wield(action=None, auto_approve=False, service_only=False):
 
 if __name__ == "__main__":
 
-    slate_wield()
+    # slate_wield(action=WieldAction.PLAN)
+    slate_wield(action=WieldAction.APPLY)
 

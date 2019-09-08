@@ -1,4 +1,4 @@
-FROM py37/base:dev
+FROM py37:dev
 MAINTAINER hamshif@gmail.com
 
 COPY run.sh /run.sh
