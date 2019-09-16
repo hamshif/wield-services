@@ -35,6 +35,5 @@ def slate_wield(action=None, auto_approve=False, service_only=False):
 
 if __name__ == "__main__":
 
-    # slate_wield(action=WieldAction.PLAN)
-    slate_wield(action=WieldAction.APPLY)
+    slate_wield()
 
