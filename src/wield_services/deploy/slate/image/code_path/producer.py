@@ -8,7 +8,7 @@ KAFKA_TOPIC = 'demo'
 # from inside the cluster in a different namespace
 KAFKA_BROKERS = 'bootstrap.kafka.svc.cluster.local:9092'
 
-KAFKA_BROKERS = 'my-kafka.kafka.svc.cluster.local:9092'
+KAFKA_BROKERS = 'wielder-kafka.kafka.svc.cluster.local:9092'
 
 # KAFKA_BROKERS = 'bootstrap:9092'
 

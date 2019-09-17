@@ -14,7 +14,7 @@ KAFKA_BROKERS = '10.110.91.158:9092'
 
 KAFKA_BROKERS = 'bootstrap.kafka.svc.cluster.local:9092'
 
-KAFKA_BROKERS = 'my-kafka.kafka.svc.cluster.local:9092'
+KAFKA_BROKERS = 'wielder-kafka.kafka.svc.cluster.local:9092'
 
 # KAFKA_BROKERS = 'broker.kafka.svc.cluster.local:9092'
 
@@ -25,7 +25,6 @@ KAFKA_BROKERS = 'my-kafka.kafka.svc.cluster.local:9092'
 print(f'KAFKA_BROKERS: {KAFKA_BROKERS}\n Topic {KAFKA_TOPIC}')
 
 consumer = KafkaConsumer(KAFKA_TOPIC, bootstrap_servers=KAFKA_BROKERS)
-
 
 for message in consumer:
     print(f"message is of type: {type(message)}")
