@@ -9,7 +9,7 @@ clientPort = 2181
 initLimit = 5
 
 # hosts = 'kafka-zookeeper.kafka.svc.cluster.local:2181'
-hosts = 'zookeeper.kafka.svc.cluster.local:2181'
+hosts = 'wielder-kafka-zookeeper.kafka.svc.cluster.local:2181'
 
 
 print(hosts)
@@ -41,10 +41,6 @@ print(f'topics: {topics}')
 
 demo = zk.get_children('/brokers/topics/demo/partitions')
 print(f'demo: {demo}')
-
-
-rtpactivities_sjrtpint = zk.get_children('/brokers/topics/rtpactivities.sjrtpint/partitions')
-print(f'rtpactivities_sjrtpint: {rtpactivities_sjrtpint}')
 
 
 
