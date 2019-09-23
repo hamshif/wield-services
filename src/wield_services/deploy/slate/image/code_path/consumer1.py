@@ -40,7 +40,7 @@ for t in consumer.topics():
 
 for message in consumer:
     print(f"message is of type: {type(message)}")
-    print(message)
+    print(f'{message}\n')
 
 print(f'bootstrap_servers: {KAFKA_BROKERS} subscribing to {KAFKA_TOPIC}')
 consumer.subscribe([KAFKA_TOPIC])

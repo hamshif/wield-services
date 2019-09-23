@@ -3,13 +3,16 @@ certifi==2019.6.16
 chardet==3.0.4
 Click==7.0
 Cython==0.29.13
--e git+https://github.com/hamshif/data-common.git@756a6a7197bb79fead628b36b17d0b6de504153f#egg=data_common&subdirectory=../../data-common/src
+-e git+https://github.com/hamshif/data-common.git@743303325e3134994521279ed118a840fb94d385#egg=data_common&subdirectory=../../data-common/src
 Flask==1.1.1
 google-auth==1.6.3
 idna==2.8
 itsdangerous==1.1.0
 Jinja2==2.10.1
 jprops==2.0.2
+kafka==1.3.5
+kafka-python==1.4.6
+kazoo==2.6.1
 kubernetes==10.0.1
 MarkupSafe==1.1.1
 mysql==0.0.2
@@ -29,5 +32,5 @@ six==1.12.0
 urllib3==1.25.3
 websocket-client==0.56.0
 Werkzeug==0.15.5
--e git+https://github.com/hamshif/wield-services.git@70d9651bbcb93db853382f4c4637be65ba0fa661#egg=wield_services&subdirectory=../../wield-services/src
--e git+https://github.com/hamshif/Wielder.git@3e2312fc8b364e93ba76b53717356252554b41b3#egg=wielder&subdirectory=../../Wielder/src
+-e git+https://github.com/hamshif/wield-services.git@7a645f66f7679f43ba3b6515abdb4997b658bc3d#egg=wield_services&subdirectory=../../wield-services/src
+-e git+https://github.com/hamshif/Wielder.git@1264e3205d270da553381a724b8bd88852d41da2#egg=wielder&subdirectory=../../Wielder/src

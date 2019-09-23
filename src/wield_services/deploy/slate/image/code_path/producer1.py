@@ -17,12 +17,14 @@ print(f'KAFKA_BROKERS: {KAFKA_BROKERS}\n Topic {KAFKA_TOPIC}')
 producer = KafkaProducer(bootstrap_servers=KAFKA_BROKERS)
 
 
-messages = [b'hello kafka', b'Falanga', b'3 test messages',
-            b'bomba', b'guchee', b'3 flaks']
+messages = [
+    b'hello kafka', b'Falanga', b'3 test messages',
+    b'punem', b'kechua', b'dirgal'
+]
 
-for a in range(1000):
-    ss = f'fool {str(a)}'.encode('utf-8')
-    messages.append(ss)
+# for a in range(1000):
+#     ss = f'fool {str(a)}'.encode('utf-8')
+#     messages.append(ss)
 
 # pt = producer.partitions_for(KAFKA_TOPIC)
 # print(f'partitions for {KAFKA_TOPIC}: {pt}')
