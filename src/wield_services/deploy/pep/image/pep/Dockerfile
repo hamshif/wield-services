@@ -1,4 +1,4 @@
-FROM perl:dev
+FROM perl_py:dev
 MAINTAINER hamshif@gmail.com
 
 COPY run.sh /run.sh

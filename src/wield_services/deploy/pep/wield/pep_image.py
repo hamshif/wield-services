@@ -19,7 +19,16 @@ def pep_image(force_last=True, push=False):
         name='perl',
         image_root=u.get_project_image_root(),
         push=False,
-        force=False,
+        force=True,
+        tag=tag
+    )
+
+    pack_image(
+        conf=conf,
+        name='perl_py',
+        image_root=u.get_project_image_root(),
+        push=False,
+        force=True,
         tag=tag
     )
 
