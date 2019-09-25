@@ -14,16 +14,16 @@ def do_something_time_consuming():
         print(e)
 
 
-KAFKA_TOPIC = 'demo'
-
 KAFKA_BROKERS = 'wielder-kafka.kafka.svc.cluster.local:9092'
+KAFKA_TOPIC = 'demo'
+GROUP_ID = 'pep2'
 
-print(f'KAFKA_BROKERS: {KAFKA_BROKERS}\n Topic {KAFKA_TOPIC}')
+print(f'KAFKA_BROKERS: {KAFKA_BROKERS}\n Topic {KAFKA_TOPIC}\n group id: {GROUP_ID}')
 
 consumer = KafkaConsumer(
     KAFKA_TOPIC,
     bootstrap_servers=KAFKA_BROKERS,
-    group_id='pep2',
+    group_id=GROUP_ID,
     enable_auto_commit=False,
     max_poll_records=1
 )
