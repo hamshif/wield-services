@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from wielder.util.arguer import replace_none_vars_from_args
+from wielder.util.commander import async_cmd
 from wielder.wield.wield_service import WieldService
 from wielder.wield.modality import WieldServiceMode
 from wielder.wield.planner import WieldAction
@@ -49,6 +50,22 @@ def output(result):
     print(result)
 
 
+# TODO expand this and make it generic for installation types
+def installations(installations):
+
+    installations.helm
+
+    [print(installation) for installation in installations]
+
+    if 'kafka' in installations.helm:
+
+        async_cmd('kubectl create ns kafka')
+        async_cmd('helm install --name wielder-kafka --namespace kafka incubator/kafka')
+
+#         TODO wait and monitor helm installation completed using kubectl output
+
+
+
 def micros_wield(parallel=True, action=None, delete_project_res=False):
 
     wield_mode, conf, action = get_project_deploy_mode(action)
@@ -67,6 +84,9 @@ def micros_wield(parallel=True, action=None, delete_project_res=False):
     if action == WieldAction.DELETE and not delete_project_res:
         print('skipping deletion of project level cluster resources such as namespaces')
     else:
+        
+        installations(project.conf.installations)
+        
         project.plan.wield(
             action=action,
             auto_approve=True
