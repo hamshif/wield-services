@@ -22,7 +22,7 @@ def boot_image(force_last=True, push=False):
         name='py_base',
         image_root=u.get_project_image_root(),
         push=False,
-        force=True,
+        force=False,
         tag=tag
     )
 
@@ -31,7 +31,7 @@ def boot_image(force_last=True, push=False):
         name='j11_py',
         image_root=u.get_project_image_root(),
         push=False,
-        force=True,
+        force=False,
         tag=tag
     )
 

@@ -51,7 +51,7 @@ def output(result):
 
 
 # TODO expand this and make it generic for installation types
-def installations(installations):
+def installations(installations, action):
 
     installations.helm
 
@@ -59,11 +59,15 @@ def installations(installations):
 
     if 'kafka' in installations.helm:
 
-        async_cmd('kubectl create ns kafka')
-        async_cmd('helm install --name wielder-kafka --namespace kafka incubator/kafka')
+        if action is WieldAction.APPLY:
+            async_cmd('kubectl create ns kafka')
+            async_cmd('helm install --name wielder-kafka --namespace kafka incubator/kafka')
+        elif action is WieldAction.DELETE:
+            async_cmd('helm delete --purge wielder-kafka')
+        elif action is WieldAction.PLAN:
+            print("plan in place to install kafka helm chart")
 
 #         TODO wait and monitor helm installation completed using kubectl output
-
 
 
 def micros_wield(parallel=True, action=None, delete_project_res=False):
@@ -85,7 +89,7 @@ def micros_wield(parallel=True, action=None, delete_project_res=False):
         print('skipping deletion of project level cluster resources such as namespaces')
     else:
         
-        installations(project.conf.installations)
+        installations(project.conf.installations, action)
         
         project.plan.wield(
             action=action,
