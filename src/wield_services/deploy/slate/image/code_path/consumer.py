@@ -16,6 +16,8 @@ KAFKA_BROKERS = 'bootstrap.kafka.svc.cluster.local:9092'
 
 KAFKA_BROKERS = 'wielder-kafka.kafka.svc.cluster.local:9092'
 
+# KAFKA_BROKERS = 'localhost:32768'
+
 # KAFKA_BROKERS = 'broker.kafka.svc.cluster.local:9092'
 
 # KAFKA_BROKERS = 'bootstrap:9092'

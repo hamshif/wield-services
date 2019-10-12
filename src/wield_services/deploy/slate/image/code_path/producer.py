@@ -10,7 +10,7 @@ KAFKA_BROKERS = 'bootstrap.kafka.svc.cluster.local:9092'
 
 KAFKA_BROKERS = 'wielder-kafka.kafka.svc.cluster.local:9092'
 
-# KAFKA_BROKERS = 'bootstrap:9092'
+# KAFKA_BROKERS = 'localhost:32768'
 
 print(f'KAFKA_BROKERS: {KAFKA_BROKERS}\n Topic {KAFKA_TOPIC}')
 
