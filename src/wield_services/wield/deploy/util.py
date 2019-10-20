@@ -3,7 +3,7 @@
 from wielder.util.arguer import get_kube_parser
 from wielder.wield.wield_project import get_conf_context_project
 from wielder.wield.wield_service import get_module_root
-from wielder.wield.locale import Locale
+from wielder.wield.wielder_project_locale import Locale
 
 
 RUNTIME_ENV = 'RUNTIME_ENV'
