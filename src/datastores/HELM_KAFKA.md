@@ -1,5 +1,11 @@
 
-Helm Chart for Kafka
+Helm 
+
+```
+brew install kubernetes-helm
+```
+
+Chart for Kafka
 
 https://github.com/helm/charts/tree/master/incubator/kafka
 
