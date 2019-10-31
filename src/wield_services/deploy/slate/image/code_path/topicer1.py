@@ -10,8 +10,9 @@ def create_topics(conf):
 
     topic_list = []
 
-    for topic in conf.topics:
+    for topic_name in conf.topics:
 
+        topic = conf.topics[topic_name]
         print(topic)
         topic_list.append(NewTopic(
             name=topic.name,
