@@ -4,6 +4,7 @@ import json
 import requests
 
 
+# TODO bring service details from conf
 def call_service(outside_call=True, protocol='http', domain='localhost',
                  service_name='whisperer', service_port='8002',
                  index='hello', payload=None, headers=None):
