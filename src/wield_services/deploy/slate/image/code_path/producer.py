@@ -1,29 +1,40 @@
 #!/usr/bin/env python
 
-from kafka import KafkaConsumer, KafkaProducer
-
-KAFKA_TOPIC = 'demo'
-# KAFKA_BROKERS = 'localhost:32400' # see step 1
-
-# from inside the cluster in a different namespace
-KAFKA_BROKERS = 'bootstrap.kafka.svc.cluster.local:9092'
-
-KAFKA_BROKERS = 'wielder-kafka.kafka.svc.cluster.local:9092'
-
-# KAFKA_BROKERS = 'localhost:32768'
-
-print(f'KAFKA_BROKERS: {KAFKA_BROKERS}\n Topic {KAFKA_TOPIC}')
-
-producer = KafkaProducer(bootstrap_servers=KAFKA_BROKERS)
+from kafka import KafkaProducer
+from pyhocon import ConfigFactory
 
 
-messages = [b'hello kafka', b'Falanga', b'3 test messages']
+def produce_conf(conf):
+
+    topics = [t for t in conf.topics]
+
+    [print(f'KAFKA_BROKERS: {conf.KAFKA_BROKERS}\n Topic {t}') for t in topics]
+
+    messages = conf.demo_messages
+    encoded = []
+
+    for m in messages:
+        en = f'fool {str(m)}'.encode('utf-8')
+        encoded.append(en)
+
+    producer = KafkaProducer(bootstrap_servers=conf.KAFKA_BROKERS)
+
+    for t in topics:
+
+        for m in encoded:
+            # pt = producer.partitions_for(t)
+            # print(f'partitions for {t}: {pt}')
+
+            print(f"sending: {m} to topic: {t}")
+            producer.send(topic=t, value=m)
+
+            producer.flush()
 
 
-for m in messages:
-    print(f"sending: {m} to topic: {KAFKA_TOPIC}")
-    producer.send(topic=KAFKA_TOPIC, value=m)
+if __name__ == "__main__":
 
-producer.flush()
+    _conf = ConfigFactory.parse_file('./Kafka.conf')
+
+    produce_conf(_conf)
 
 

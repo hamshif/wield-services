@@ -1,36 +1,66 @@
 #!/usr/bin/env python
+import sys
 
 from kafka import KafkaConsumer
-
-KAFKA_TOPIC = 'demo'
-# KAFKA_BROKERS = '192.168.99.100:32400' # see step 1
+from pyhocon import ConfigFactory
 
 
-# KAFKA_BROKERS = 'bootstrap.kafka.svc.cluster.local:9092'
+def get_consumer(conf):
 
-KAFKA_BROKERS = 'kafka.kafka.svc.cluster.local:9092'
+    print(f'Consumer with group id: {conf.demo_group_id}')
+    consumer = KafkaConsumer(
+        conf.demo_topic,
+        bootstrap_servers=conf.KAFKA_BROKERS,
+        group_id=conf.demo_group_id
+    )
 
-KAFKA_BROKERS = '10.110.91.158:9092'
+    return consumer
 
-KAFKA_BROKERS = 'bootstrap.kafka.svc.cluster.local:9092'
 
-KAFKA_BROKERS = 'wielder-kafka.kafka.svc.cluster.local:9092'
+def list_topics(conf):
 
-# KAFKA_BROKERS = 'localhost:32768'
+    consumer = get_consumer(conf)
 
-# KAFKA_BROKERS = 'broker.kafka.svc.cluster.local:9092'
+    print('gremlin')
 
-# KAFKA_BROKERS = 'bootstrap:9092'
-#
-# KAFKA_BROKERS = 'kafka:9092'
+    for t in consumer.topics():
 
-print(f'KAFKA_BROKERS: {KAFKA_BROKERS}\n Topic {KAFKA_TOPIC}')
+        print(f'topic: {t}')
+        tt = consumer.partitions_for_topic(t)
+        print(tt)
 
-consumer = KafkaConsumer(KAFKA_TOPIC, bootstrap_servers=KAFKA_BROKERS)
 
-for message in consumer:
-    print(f"message is of type: {type(message)}")
-    print(message)
+def consume_conf(conf):
 
-print(f'bootstrap_servers: {KAFKA_BROKERS} subscribing to {KAFKA_TOPIC}')
-consumer.subscribe([KAFKA_TOPIC])
+    topics = [t for t in conf.topics]
+
+    print(f'bootstrap_servers:           {conf.KAFKA_BROKERS}\n'
+          f'subscribing to these topics: {topics}\n')
+
+    consumer = get_consumer(conf)
+
+    print('genesh')
+
+    for message in consumer:
+        print(f"message is of type: {type(message)}")
+        print(f'{message}\n')
+
+    consumer.subscribe(topics)
+
+
+if __name__ == "__main__":
+
+    _conf = ConfigFactory.parse_file('./Kafka.conf')
+
+    ar = sys.argv
+
+    if len(ar) == 1:
+        consume_conf(_conf)
+
+    elif len(ar) > 1:
+        action = sys.argv[1]
+
+        if action == 'list':
+            list_topics(_conf)
+
+

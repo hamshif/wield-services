@@ -56,7 +56,12 @@ def create_topics(conf):
         client_id='test'
     )
 
-    admin_client.create_topics(new_topics=topic_list, validate_only=False)
+    try:
+        admin_client.create_topics(new_topics=topic_list, validate_only=True)
+    except Exception as e:
+        print(e)
+
+    print(f'completed')
 
 
 # TODO hold admin client in singleton?
