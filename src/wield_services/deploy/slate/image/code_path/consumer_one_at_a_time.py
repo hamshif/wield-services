@@ -4,6 +4,8 @@ from kafka import KafkaConsumer, OffsetAndMetadata, TopicPartition
 
 import time
 
+from pyhocon import ConfigFactory
+
 
 def do_something_time_consuming():
     try:
@@ -14,38 +16,46 @@ def do_something_time_consuming():
         print(e)
 
 
-KAFKA_BROKERS = 'wielder-kafka.kafka.svc.cluster.local:9092'
-KAFKA_TOPIC = 'demo'
-GROUP_ID = 'pep2'
+def consume_one_message_at_a_time(conf):
 
-print(f'KAFKA_BROKERS: {KAFKA_BROKERS}\n Topic {KAFKA_TOPIC}\n group id: {GROUP_ID}')
+    kafka_brokers = conf.KAFKA_BROKERS
+    topic = conf.demo_topic
+    group_id = f'{conf.demo_group_id}_2'
 
-consumer = KafkaConsumer(
-    KAFKA_TOPIC,
-    bootstrap_servers=KAFKA_BROKERS,
-    group_id=GROUP_ID,
-    enable_auto_commit=False,
-    max_poll_records=1
-)
+    print(f'KAFKA_BROKERS: {kafka_brokers}\n Topic {topic}\n group id: {group_id}')
 
-print(f'bootstrap_servers: {KAFKA_BROKERS} subscribing to {KAFKA_TOPIC}')
-consumer.subscribe([KAFKA_TOPIC])
+    consumer = KafkaConsumer(
+        topic,
+        bootstrap_servers=kafka_brokers,
+        group_id=group_id,
+        enable_auto_commit=False,
+        max_poll_records=1
+    )
 
-for message in consumer:
-    print(f"message is of type: {type(message)}")
-    print(message)
+    print(f'bootstrap_servers: {kafka_brokers} subscribing to {topic}')
+    consumer.subscribe([topic])
 
-    do_something_time_consuming()
+    for message in consumer:
+        print(f"message is of type: {type(message)}")
+        print(message)
 
-    meta = consumer.partitions_for_topic(message.topic)
+        do_something_time_consuming()
 
-    partition = TopicPartition(message.topic, message.partition)
-    offsets = OffsetAndMetadata(message.offset + 1, meta)
-    options = {partition: offsets}
+        meta = consumer.partitions_for_topic(message.topic)
 
-    print(f'\noptions: {options}\n')
+        partition = TopicPartition(message.topic, message.partition)
+        offsets = OffsetAndMetadata(message.offset + 1, meta)
+        options = {partition: offsets}
 
-    response = consumer.commit(offsets=options)
+        print(f'\noptions: {options}\n')
 
+        response = consumer.commit(offsets=options)
+
+
+if __name__ == "__main__":
+
+    _conf = ConfigFactory.parse_file('./Kafka.conf')
+
+    consume_one_message_at_a_time(_conf)
 
 
