@@ -18,6 +18,7 @@ RUN pip3.6 install kazoo
 RUN pip3.6 install flask
 RUN pip3.6 install kafka-python
 RUN pip3.6 install kubernetes
+RUN pip3.6 install pyhocon
 
 COPY run.sh /run.sh
 
