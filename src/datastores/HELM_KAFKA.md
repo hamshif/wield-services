@@ -20,5 +20,5 @@ helm install --name wielder-kafka --namespace kafka incubator/kafka --set replic
 ```
 
 ```
-
+helm delete --purge wielder-kafka
 ```
