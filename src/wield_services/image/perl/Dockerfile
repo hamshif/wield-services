@@ -13,8 +13,10 @@ RUN perl -MCPAN -e 'install (Tk)'
 RUN perl -MCPAN -e 'install (YAML)'
 RUN perl -MCPAN -e 'install (GD::Simple)'
 RUN perl -MCPAN -e 'install (GD::Graph)'
-
-#RUN apt-get install -y python3.6
+RUN perl -MCPAN -e 'install (JSON)'
+RUN perl -MCPAN -e 'install (HTTP::Request)'
+RUN perl -MCPAN -e 'install (HTTP::Response)'
+RUN perl -MCPAN -e 'install (HTTP::Daemon)'
 
 COPY run.sh /run.sh
 

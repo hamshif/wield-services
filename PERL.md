@@ -59,7 +59,7 @@ test ruby in file
 ```
 perlbrew switch 5.14.4
 cpanm install Try::Tiny
-cpam install YAML
+cpanm install YAML
 cpanm install GD::Simple
 cpanm install GD::Graph
 ```
@@ -74,5 +74,15 @@ to use GUI you need XQuartz to be running
 Kafka
 -
 ```
-cpanm install Kafka::Connection
+sudo cpanm install (JSON)
+sudo cpanm install (HTTP::Request)
+sudo cpanm install (HTTP::Response)
+sudo cpanm install (HTTP::Daemon)
+sudo cpanm install Kafka::Connection
+sudo cpanm install Kafka::Connection
+```
+
+for intellij
+```
+sudo cpanm install Bundle::Camelcade 
 ```

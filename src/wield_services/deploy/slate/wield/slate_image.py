@@ -17,7 +17,7 @@ def slate_image(force_last=True, push=False):
         name='py37',
         image_root=u.get_project_image_root(),
         push=False,
-        force=False,
+        force=True,
         tag=tag
     )
 
