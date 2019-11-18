@@ -1,4 +1,4 @@
-FROM alpine:3.7
+FROM alpine:3.10.3
 MAINTAINER hamshif@gmail.com
 
 RUN apk update \
@@ -15,7 +15,7 @@ RUN apk add --no-cache python3 \
     if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi && \
     rm -r /root/.cache
 
-RUN apk add --no-cache openssl-dev libffi-dev build-base python3-dev
+RUN apk add --no-cache openssl-dev libffi-dev build-base python3-dev librdkafka-dev
 
 RUN pip3 install kubernetes
 RUN pip3 install kafka
@@ -23,8 +23,9 @@ RUN pip3 install kazoo
 RUN pip3 install flask
 RUN pip3 install kafka-python
 RUN pip3 install pyhocon
+RUN pip3 install confluent-kafka
 
-ENV KUBE_LATEST_VERSION="v1.15.3"
+ENV KUBE_LATEST_VERSION="v1.16.0"
 
 RUN apk add --update ca-certificates \
  && apk add --update -t deps curl \
@@ -34,6 +35,7 @@ RUN apk add --update ca-certificates \
  && rm /var/cache/apk/*
 
 RUN mkdir -p /storage
+
 
 WORKDIR /app
 
