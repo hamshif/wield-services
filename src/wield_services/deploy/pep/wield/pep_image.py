@@ -66,5 +66,5 @@ if __name__ == "__main__":
 
     pep_image(push=False)
 
-    # slate_image(force_last=False, push=True)
+    # pep_image(force_last=False, push=True)
 
