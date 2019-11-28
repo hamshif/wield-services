@@ -1,0 +1,3 @@
+[submodule "src/datastores/kubernetes-kafka"]
+	path = src/datastores/kubernetes-kafka
+	url = https://github.com/hamshif/kubernetes-kafka.git
