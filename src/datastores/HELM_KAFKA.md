@@ -22,6 +22,9 @@ helm install --name wielder-kafka --namespace kafka incubator/kafka
 helm install --name wielder-kafka --namespace kafka incubator/kafka --set replicas=1
 
 helm install --name wielder-kafka --namespace kafka incubator/kafka --set replicas=1 --set envOverrides={zookeeper.replicaCount:1}
+
+
+helm install --name wielder-kafka --namespace kafka incubator/kafka --set configurationOverride="{"replica.fetch.max.bytes":15048576,"message.max.bytes":15048576}"
 ```
 
 ```
