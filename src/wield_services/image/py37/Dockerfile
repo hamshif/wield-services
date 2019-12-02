@@ -34,6 +34,21 @@ RUN apk add --update ca-certificates \
  && apk del --purge deps \
  && rm /var/cache/apk/*
 
+ARG VERSION=1.4.0
+
+ENV LANG=en_US.UTF-8 LC_ALL=C.UTF-8 LANGUAGE=en_US.UTF-8
+
+RUN apk add --no-cache git
+#RUN apk add --no-cache openssl-dev build-base
+#RUN apk add --no-cache yajl yajl-dev cmake coreutils
+RUN git clone --branch ${VERSION} --single-branch https://github.com/edenhill/kafkacat.git kafkacat &&\
+    cd kafkacat &&\
+    ./bootstrap.sh &&\
+    make install &&\
+    strip /usr/local/bin/kafkacat
+
+RUN rm -rf /app/kafkacat
+
 RUN mkdir -p /storage
 
 
