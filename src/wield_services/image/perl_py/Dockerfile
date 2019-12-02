@@ -1,29 +1,31 @@
-FROM perl:dev
+FROM perl2:dev
 MAINTAINER hamshif@gmail.com
 
-RUN wget https://www.python.org/ftp/python/3.6.5/Python-3.6.5.tgz
-RUN tar xvf Python-3.6.5.tgz
-RUN cd Python-3.6.5 \
-    && ./configure --enable-optimizations --enable-shared --with-ensurepip=install \
-    && make -j8 \
-    && make altinstall
+RUN apk update \
+    && apk upgrade \
+    && apk add --no-cache bash \
+    && apk add --no-cache --virtual=build-dependencies unzip \
+    && apk add --no-cache curl
 
-ENV LD_LIBRARY_PATH=/code_path/Python-3.6.5
+RUN apk add --no-cache openssl-dev libffi-dev build-base python3-dev librdkafka-dev
 
-RUN apt-get install -y python3-pip
+RUN apk add --no-cache python3 \
+    && python3 -m ensurepip \
+    && pip3 install --upgrade pip setuptools \
+    && rm -r /usr/lib/python*/ensurepip && \
+    if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip ; fi && \
+    if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi && \
+    rm -r /root/.cache
 
-RUN pip3.6 install --upgrade pip setuptools
+RUN pip3 install --upgrade pip setuptools
 
-RUN pip3.6 install kafka
-RUN pip3.6 install kazoo
-RUN pip3.6 install flask
-RUN pip3.6 install kafka-python
-RUN pip3.6 install kubernetes
-RUN pip3.6 install pyhocon
-
-RUN apt-get install -y librdkafka-dev
-
-RUN pip3.6 install confluent-kafka
+RUN pip3 install kafka
+RUN pip3 install kazoo
+RUN pip3 install flask
+RUN pip3 install kafka-python
+RUN pip3 install kubernetes
+RUN pip3 install pyhocon
+RUN pip3 install confluent-kafka
 
 COPY run.sh /run.sh
 
