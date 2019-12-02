@@ -27,6 +27,23 @@ RUN pip3 install kubernetes
 RUN pip3 install pyhocon
 RUN pip3 install confluent-kafka
 
+ARG VERSION=1.4.0
+
+ENV LANG=en_US.UTF-8 LC_ALL=C.UTF-8 LANGUAGE=en_US.UTF-8
+
+WORKDIR /app
+#
+RUN apk add --no-cache openssl-dev build-base
+#RUN apk add --no-cache yajl yajl-dev cmake coreutils
+
+RUN git clone --branch ${VERSION} --single-branch https://github.com/edenhill/kafkacat.git kafkacat &&\
+    cd kafkacat &&\
+    ./bootstrap.sh &&\
+    make install &&\
+    strip /usr/local/bin/kafkacat
+
+RUN rm -rf /app/kafkacat
+
 COPY run.sh /run.sh
 
 RUN chmod +x "/run.sh"
