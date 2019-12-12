@@ -49,12 +49,14 @@ def get_locale(__file__1):
 
     project_root = get_project_root()
     super_project_root = get_super_project_root()
+    datastores_root = project_root.replace('wield_services/wield', 'datastores')
 
     locale = Locale(
         project_root=project_root,
         super_project_root=super_project_root,
         module_root=module_root,
-        code_path=None
+        code_path=None,
+        datastores_root=datastores_root
     )
 
     return locale
