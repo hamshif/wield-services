@@ -2,9 +2,8 @@
 import os
 
 from wielder.util.arguer import get_kube_parser
-from wielder.wrx.deployer import init_observe_pods
+from wielder.wield.deployer import init_observe_pods
 
-from wield_kube.wield.conf.rtp_conf import local_process_args
 from pyhocon import ConfigFactory as Cf
 from pyhocon.tool import HOCONConverter
 

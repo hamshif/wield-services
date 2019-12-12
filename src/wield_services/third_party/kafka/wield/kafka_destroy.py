@@ -2,8 +2,8 @@
 import os
 
 from wield_services.wield.deploy.util import get_locale
-from wielder.wrx.deployer import delete_pvc_pv
-from wield_services.third_party.kafka.wield.kafka_deploy import delete, get_ordered_cluster_res, get_ordered_zoo_res, get_ordered_kafka_res
+from wielder.wield.deployer import delete_pvc_pv, delete_multiple
+from wield_services.third_party.kafka.wield.kafka_deploy import get_ordered_cluster_res, get_ordered_zoo_res, get_ordered_kafka_res
 
 
 def kafka_delete(del_cluster_assets=False, del_pv=True):
@@ -16,10 +16,10 @@ def kafka_delete(del_cluster_assets=False, del_pv=True):
     module_root = f'{locale.datastores_root}kubernetes-kafka'
 
     kafka_res = get_ordered_kafka_res()
-    delete(res_tuples=kafka_res, module_root=module_root)
+    delete_multiple(res_tuples=kafka_res, module_root=module_root)
 
     zoo_res = get_ordered_zoo_res()
-    delete(res_tuples=zoo_res, module_root=module_root)
+    delete_multiple(res_tuples=zoo_res, module_root=module_root)
 
     if del_pv:
         os.system(f'kubectl delete -f {module_root}/variants/docker-desktop/docker-storage.yaml --wait=false')
