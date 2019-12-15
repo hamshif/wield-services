@@ -1,37 +1,47 @@
 #!/usr/bin/env python
-
 import logging
-import os
 import logging.config
+import os
 import yaml
+
+from wield_services.wield.deploy.util import get_locale
 
 
 def setup_logging(
-        path=None,
-        default_level=None,
+        default_path=None,
+        log_level=None,
+        env_key='LOG_CFG'
 ):
     """
     Setup logging configuration
     """
-    if not path:
 
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        print(f"\ncurrent working dir: {dir_path}\n")
-        path = f'{dir_path}/logging.yaml'
+    locale = get_locale(__file__)
+
+    path = f'{locale.project_root}' if default_path is None else default_path
 
     if os.path.exists(path):
-        with open(path, 'rt') as f:
+        with open(f'{path}/logging.yaml', 'rt') as f:
             config = yaml.safe_load(f.read())
 
         logging.config.dictConfig(config)
     else:
-        default_level = logging.INFO if default_level is None else default_level
-        logging.basicConfig(level=default_level)
+        log_level = logging.INFO if log_level is None else log_level
+        # logging.basicConfig(level=log_level)
+
+    if log_level is not None:
+        logger = logging.getLogger()
+        logger.setLevel(log_level)
+
+        for handler in logger.handlers:
+            handler.setLevel(log_level)
 
 
 if __name__ == "__main__":
 
-    setup_logging()
+    setup_logging(
+        log_level=logging.DEBUG
+    )
 
     logging.info('Configured logging')
     logging.debug('Configured logging')

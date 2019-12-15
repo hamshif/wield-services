@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import logging
-import os
 
 from wield_services.wield.log_util import setup_logging
 from wielder.util.arguer import replace_none_vars_from_args
@@ -38,7 +37,7 @@ def boot_wield(action=None, auto_approve=False, service_only=False):
 if __name__ == "__main__":
 
     setup_logging(
-        default_level=logging.DEBUG
+        log_level=logging.DEBUG
     )
 
     logging.info('Configured logging')
