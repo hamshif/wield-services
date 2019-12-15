@@ -10,7 +10,6 @@ from wield_services.wield.deploy.util import get_locale
 def setup_logging(
         default_path=None,
         log_level=None,
-        env_key='LOG_CFG'
 ):
     """
     Setup logging configuration

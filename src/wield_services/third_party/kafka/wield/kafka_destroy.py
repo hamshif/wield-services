@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+import logging
 import os
 
 from wield_services.wield.deploy.util import get_locale
+from wield_services.wield.log_util import setup_logging
 from wielder.wield.deployer import delete_pvc_pv, delete_multiple
 from wield_services.third_party.kafka.wield.kafka_deploy import get_ordered_cluster_res, get_ordered_zoo_res, get_ordered_kafka_res
 
@@ -23,11 +25,11 @@ def kafka_delete(del_cluster_assets=False, del_pv=True):
 
     if del_pv:
         os.system(f'kubectl delete -f {module_root}/variants/docker-desktop/docker-storage.yaml --wait=false')
-        print('tsav')
+        logging.debug('tsav')
         delete_pvc_pv('data-kafka', namespace=namespace)
-        print('mamoota')
+        logging.debug('mamoota')
         delete_pvc_pv('data-zoo', namespace=namespace)
-        print('arnav')
+        logging.debug('arnav')
         delete_pvc_pv('data-pzoo', namespace=namespace)
 
     if del_cluster_assets:
@@ -40,7 +42,10 @@ def kafka_delete(del_cluster_assets=False, del_pv=True):
 
 if __name__ == "__main__":
 
-    print()
+    setup_logging(log_level=logging.DEBUG)
+
+    logging.debug('break point')
+
     kafka_delete()
 
 

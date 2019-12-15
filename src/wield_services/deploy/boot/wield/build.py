@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-
+import logging
 import os
 from shutil import copyfile
 
+from wield_services.wield.log_util import setup_logging
 from wielder.util.commander import async_cmd, subprocess_cmd
 from wield_services.wield.deploy import util as u
 from wielder.util.util import DirContext
@@ -34,6 +35,10 @@ def build_for_container_mount(force_last=True, push=False):
 
 
 if __name__ == "__main__":
+
+    setup_logging(log_level=logging.DEBUG)
+
+    logging.debug('break point')
 
     build_for_container_mount(push=False)
 

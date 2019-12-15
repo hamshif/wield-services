@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+import logging
 import os
 
 from wield_services.wield.deploy.util import get_locale
+from wield_services.wield.log_util import setup_logging
 from wielder.wield.deployer import apply_multiple
 from wielder.wield.enumerator import KubeResType
 
@@ -51,7 +53,7 @@ def kafka_wield():
 
     locale = get_locale(__file__)
 
-    print('break')
+    logging.debug('break')
 
     module_root = f'{locale.datastores_root}kubernetes-kafka'
 
@@ -70,6 +72,10 @@ def kafka_wield():
 
 
 if __name__ == "__main__":
+
+    setup_logging(log_level=logging.DEBUG)
+
+    logging.debug('break point')
 
     kafka_wield()
 

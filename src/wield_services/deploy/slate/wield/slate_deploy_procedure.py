@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+import logging
 import os
 
+from wield_services.wield.log_util import setup_logging
 from wielder.util.arguer import get_kube_parser
 from wielder.wield.deployer import init_observe_pods
 
@@ -115,6 +117,10 @@ def slate_deploy():
 
 
 if __name__ == "__main__":
+
+    setup_logging(log_level=logging.DEBUG)
+
+    logging.debug('break point')
 
     slate_deploy()
 

@@ -36,12 +36,8 @@ def boot_wield(action=None, auto_approve=False, service_only=False):
 
 if __name__ == "__main__":
 
-    setup_logging(
-        log_level=logging.DEBUG
-    )
+    setup_logging(log_level=logging.DEBUG)
 
-    logging.info('Configured logging')
     logging.debug('Configured logging')
-    print('psyche')
 
     boot_wield()

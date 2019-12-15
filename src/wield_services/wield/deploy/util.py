@@ -76,7 +76,8 @@ def get_module_locale(module_name):
         project_root=project_root,
         super_project_root=super_project_root,
         module_root=module_root,
-        code_path=None
+        code_path=None,
+        datastores_root=None
     )
 
     return locale

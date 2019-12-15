@@ -1,5 +1,7 @@
 #!/usr/bin/env python
+import logging
 
+from wield_services.wield.log_util import setup_logging
 from wielder.util.imager import pack_image, push_image, replace_dir_contents
 from wield_services.wield.deploy import util as u
 
@@ -63,6 +65,10 @@ def pep_image(force_last=True, push=False):
 
 
 if __name__ == "__main__":
+
+    setup_logging(log_level=logging.DEBUG)
+
+    logging.debug('break point')
 
     pep_image(push=False)
 

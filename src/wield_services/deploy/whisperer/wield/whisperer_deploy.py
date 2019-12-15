@@ -1,5 +1,7 @@
 #!/usr/bin/env python
+import logging
 
+from wield_services.wield.log_util import setup_logging
 from wielder.util.arguer import replace_none_vars_from_args
 from wielder.wield.wield_service import WieldService
 from wield_services.wield.deploy.util import get_locale
@@ -33,5 +35,9 @@ def whisperer_wield(action=None, auto_approve=False, service_only=False):
 
 
 if __name__ == "__main__":
+
+    setup_logging(log_level=logging.DEBUG)
+
+    logging.debug('break point')
 
     whisperer_wield()
