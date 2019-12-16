@@ -1,2 +1,4 @@
 *.yaml
 /plan
+
+*local.conf
