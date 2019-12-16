@@ -5,7 +5,7 @@ import os
 from wield_services.wield.deploy.util import get_locale
 from wield_services.wield.log_util import setup_logging
 from wielder.wield.deployer import delete_pvc_pv, delete_multiple
-from wield_services.third_party.kafka.wield.kafka_deploy import get_ordered_cluster_res, get_ordered_zoo_res, get_ordered_kafka_res
+from wield_services.third_party.kafka.wrap.kafka_deploy import get_ordered_cluster_res, get_ordered_zoo_res, get_ordered_kafka_res
 
 
 def kafka_delete(del_cluster_assets=False, del_pv=True):
