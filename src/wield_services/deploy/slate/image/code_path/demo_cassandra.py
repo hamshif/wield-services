@@ -2,6 +2,12 @@
 """
 Author: Gideon Bar
 """
+import json
+import os
+import traceback
+
+from time import sleep
+
 import logging
 from cassandra import ConsistencyLevel
 from cassandra.cluster import Cluster, BatchStatement
@@ -70,7 +76,7 @@ class BaseTable:
 
         return rows
 
-    def del_keyspace(self, keyspace):
+    def del_keyspace(self, keyspace=None):
 
         if keyspace is None:
             keyspace = self.keyspace
@@ -90,8 +96,8 @@ class BaseTable:
 
 class PointGrid(BaseTable):
 
-    def __init__(self, host, keyspace, table_name):
-        super().__init__(host, keyspace, table_name)
+    def __init__(self, host):
+        super().__init__(host, 'grids', 'point_grid')
 
     def create_table(self):
         c_sql = f"""
@@ -123,19 +129,102 @@ class PointGrid(BaseTable):
         self.log.info('Batch Insert Completed')
 
 
-if __name__ == '__main__':
+def poc():
+    conf = ConfigFactory.parse_file('./Cassandra.conf')
 
-    _conf = ConfigFactory.parse_file('./Cassandra.conf')
-
-    grid = PointGrid(_conf.host, 'grids', 'point_grid')
+    grid = PointGrid(conf.host)
 
     grid.list_keyspaces()
 
-    # grid.del_keyspace(grid.keyspace)
-    # grid.list_keyspaces()
+    grid.del_keyspace()
+    grid.list_keyspaces()
 
-    grid.create_table()
-    grid.insert_data()
-    rows = grid.select_data(pr=True)
+    # grid.create_table()
+    # grid.insert_data()
+    # rows = grid.select_data(pr=True)
+    #
+    # print(rows)
+
+
+class ElectricityGrid(BaseTable):
+
+    def __init__(self, host):
+        super().__init__(host, 'grids', 'electricity_grid')
+
+    def create_table(self):
+        cql_cmd = f"""
+        CREATE TABLE IF NOT EXISTS {self.table_name} (
+            x int,
+            y int,
+            z int,
+            atom text,
+            electricity double,
+            PRIMARY KEY (x, y, z, atom)
+        )
+        """
+        self.session.execute(cql_cmd)
+        self.log.info(f"{self.table_name} Table verified !!!")
+
+    def insert_data(self, data):
+
+        insert_cql_cmd = self.session.prepare(f"INSERT INTO  {self.table_name} (x, y, z, atom , electricity) VALUES (?,?,?,?,?)")
+        batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
+
+        statement_count = 0
+
+        for key, value in data.items():
+
+            for k, v in value.items():
+
+                x, y, z = key.split(',')
+
+                batch.add(insert_cql_cmd, (int(x), int(y), int(z), k, int(v)))
+
+                statement_count += 1
+
+                if statement_count > 200:
+
+                    statement_count = 0
+                    batch.clear()
+                    self.session.execute(batch)
+                    self.log.info('Intermediate Batch Insert Completed')
+
+        self.session.execute(batch)
+        self.log.info('Batch Insert Completed')
+
+
+def demo():
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    print(f"current working dir: {dir_path}")
+
+    origin_name = f'{dir_path}/ENERGYGRID'
+
+    a = f'{origin_name}.json'
+
+    with open(a) as json_file:
+        data = json.load(json_file)
+
+        _conf = ConfigFactory.parse_file('./Cassandra.conf')
+
+        grid = ElectricityGrid(_conf.host)
+        #
+        grid.list_keyspaces()
+        #
+        # _grid.del_keyspace()
+        # _grid.list_keyspaces()
+
+        grid.create_table()
+        grid.insert_data(data)
+        rows = grid.select_data(pr=True)
+
+        print(rows)
+
+
+if __name__ == '__main__':
+
+    demo()
+    # poc()
+
 
 
