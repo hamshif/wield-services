@@ -1,4 +1,4 @@
-FROM perl2:dev
+FROM perl:dev
 MAINTAINER hamshif@gmail.com
 
 RUN apk update \

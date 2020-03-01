@@ -8,7 +8,7 @@ RUN apk add --no-cache curl tar make gcc build-base wget gnupg ca-certificates g
 RUN apk add --no-cache zlib zlib-dev
 RUN apk add --no-cache perl perl-dev
 
-RUN curl -L http://xrl.us/cpanm > /bin/cpanm && chmod +x /bin/cpanm
+RUN apk add --no-cache perl-app-cpanminus
 RUN cpanm App::cpm
 
 WORKDIR /usr
@@ -32,7 +32,7 @@ RUN cpm install Gzip::Faster
 ENV PERL5LIB=/usr/local/lib/perl5
 ENV PATH=/usr/local/bin:$PATH
 
-RUN apk add --no-cache musl-obstack-dev --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing
+RUN apk add --no-cache musl-obstack-dev --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main
 
 RUN cpm install Proc::ProcessTable
 RUN cpm install Kafka::Connection
