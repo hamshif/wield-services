@@ -37,6 +37,21 @@ RUN apk add --no-cache musl-obstack-dev --repository=http://dl-cdn.alpinelinux.o
 RUN cpm install Proc::ProcessTable
 RUN cpm install Kafka::Connection
 
+RUN apk add --update openssl
+
+RUN apk add --update openssl-dev
+
+RUN cpm install IO::Socket::INET6
+RUN cpm install Net::SSLeay
+
+#RUN cpm install Cassandra::Client
+
+RUN cpm install https://cpan.metacpan.org/authors/id/T/TV/TVDW/Cassandra-Client-0.10.tar.gz
+
+RUN cpm install DBI
+RUN cpm install DBD::Cassandra && \
+    rm -rf /var/cache/apk/*
+
 COPY run.sh /run.sh
 
 RUN chmod +x "/run.sh"

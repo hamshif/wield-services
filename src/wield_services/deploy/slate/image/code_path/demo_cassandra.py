@@ -76,6 +76,18 @@ class BaseTable:
 
         return rows
 
+    def select_data1(self, pr=False, where_args=None):
+
+        if where_args is None:
+            where_clause = ''
+
+        rows = self.session.execute(f'select * from {self.table_name};')
+
+        if pr:
+            [print(row) for row in rows]
+
+        return rows
+
     def del_keyspace(self, keyspace=None):
 
         if keyspace is None:
@@ -129,8 +141,7 @@ class PointGrid(BaseTable):
         self.log.info('Batch Insert Completed')
 
 
-def poc():
-    conf = ConfigFactory.parse_file('./Cassandra.conf')
+def poc(conf):
 
     grid = PointGrid(conf.host)
 
@@ -193,7 +204,7 @@ class ElectricityGrid(BaseTable):
         self.log.info('Batch Insert Completed')
 
 
-def demo():
+def demo(conf):
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     print(f"current working dir: {dir_path}")
@@ -205,9 +216,7 @@ def demo():
     with open(a) as json_file:
         data = json.load(json_file)
 
-        _conf = ConfigFactory.parse_file('./Cassandra.conf')
-
-        grid = ElectricityGrid(_conf.host)
+        grid = ElectricityGrid(conf.host)
         #
         grid.list_keyspaces()
         #
@@ -221,10 +230,38 @@ def demo():
         print(rows)
 
 
+def everything(conf):
+
+    grid = ElectricityGrid(conf.host)
+    rows = grid.select_data1(pr=False)
+
+    electricity_grid = {}
+
+    for row in rows:
+        electricity_grid[f"{str(row.x)},{str(row.y)},{str(row.x)}"] = {row.atom: row.electricity}
+
+    count = 0
+    for atom in electricity_grid.items():
+        print(atom)
+        count += 1
+        if count > 5:
+            break
+
+    print(f"Electricity grid entries: {len(electricity_grid)}")
+
+    return electricity_grid
+
+
 if __name__ == '__main__':
 
-    demo()
-    # poc()
+    _conf = ConfigFactory.parse_file('./Cassandra.conf')
+
+    # demo(_conf)
+    # poc(_conf)
+
+    everything(_conf)
+
+
 
 
 
