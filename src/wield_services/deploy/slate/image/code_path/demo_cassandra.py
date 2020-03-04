@@ -221,7 +221,6 @@ class PointGrid(BaseTable):
         return electricity_grid
 
 
-
 def poc(conf):
 
     grid = PointGrid(conf.host)
@@ -254,14 +253,12 @@ def demo(conf):
         #
         grid.list_keyspaces()
         #
-        # _grid.del_keyspace()
-        # _grid.list_keyspaces()
+        # grid.del_keyspace()
+        # grid.list_keyspaces()
 
         grid.create_table()
         grid.insert_data(data)
-        # rows = grid.select_data1(pr=True)
-        #
-        # print(rows)
+        rows = grid.select_data1(pr=True)
 
 
 def everything(conf, grid_type='electric'):
@@ -274,7 +271,7 @@ def everything(conf, grid_type='electric'):
 
     for row in rows:
 
-        print(f"gooz: {row}")
+        # print(f"row: {row}")
 
         key = f"{str(row.x)},{str(row.y)},{str(row.x)}"
 
@@ -285,7 +282,7 @@ def everything(conf, grid_type='electric'):
 
     count = 0
     for point_name in point_grid.items():
-        print(f"pumen: {point_name}")
+        print(f"row: {point_name}")
         count += 1
         if count > 100:
             break
@@ -309,7 +306,7 @@ if __name__ == '__main__':
     demo(_conf)
     # poc(_conf)
 
-    everything(_conf, 'point')
+    # everything(_conf, 'point')
 
     # list_tables(_conf)
 
