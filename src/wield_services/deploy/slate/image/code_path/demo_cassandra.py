@@ -105,6 +105,32 @@ class BaseTable:
         else:
             self.log.info(f"could'nt find keyspace: {keyspace}")
 
+    def list_tables(self, keyspace=None):
+
+        if keyspace is None:
+            keyspace = self.keyspace
+
+        self.cluster = Cluster([self.host])
+        self.session = self.cluster.connect(None)
+
+        tables = self.cluster.metadata.keyspaces['grids']
+        # cmd = f"DESCRIBE KEYSPACES;"
+        #
+        # print(cmd)
+        #
+        # tables = self.session.execute(cmd)
+        #
+
+        print(f"meta data:\n{tables.__dict__}")
+
+        for table in tables.__dict__['tables']:
+            print(table)
+
+            column = tables.__dict__['tables'][table].__dict__['columns'].items()
+
+            [print(f'column: {i}   {i[1]}') for i in column]
+
+
 
 class PointGrid(BaseTable):
 
@@ -204,6 +230,12 @@ class ElectricityGrid(BaseTable):
         self.log.info('Batch Insert Completed')
 
 
+class HotspotGrid(BaseTable):
+
+    def __init__(self, host):
+        super().__init__(host, 'grids', 'hotspotgrid')
+
+
 def demo(conf):
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -230,9 +262,15 @@ def demo(conf):
         print(rows)
 
 
-def everything(conf):
+def everything(conf, grid_type='electric'):
 
-    grid = ElectricityGrid(conf.host)
+    if grid_type is 'electric':
+        grid = ElectricityGrid(conf.host)
+    elif grid_type is 'hotspot':
+        grid = HotspotGrid(conf.host)
+    else:
+        return
+
     rows = grid.select_data1(pr=False)
 
     electricity_grid = {}
@@ -244,12 +282,19 @@ def everything(conf):
     for atom in electricity_grid.items():
         print(atom)
         count += 1
-        if count > 5:
+        if count > 100:
             break
 
-    print(f"Electricity grid entries: {len(electricity_grid)}")
+    print(f"{grid_type} grid entries: {len(electricity_grid)}")
 
     return electricity_grid
+
+
+def list_tables(conf):
+
+    grid = ElectricityGrid(conf.host)
+
+    grid.list_tables()
 
 
 if __name__ == '__main__':
@@ -259,7 +304,9 @@ if __name__ == '__main__':
     # demo(_conf)
     # poc(_conf)
 
-    everything(_conf)
+    everything(_conf, 'hotspot')
+
+    # list_tables(_conf)
 
 
 

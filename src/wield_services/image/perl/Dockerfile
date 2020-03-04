@@ -52,6 +52,8 @@ RUN cpm install DBI
 RUN cpm install DBD::Cassandra && \
     rm -rf /var/cache/apk/*
 
+RUN cpm install Const::Exporter
+
 COPY run.sh /run.sh
 
 RUN chmod +x "/run.sh"
