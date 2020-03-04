@@ -299,6 +299,21 @@ def list_tables(conf):
     grid.list_tables()
 
 
+def reset(conf, table_name):
+
+    grid = PointGrid(conf.host, table_name)
+
+    grid.list_keyspaces()
+
+    grid.del_keyspace()
+    grid.list_keyspaces()
+
+    grid = PointGrid(conf.host, table_name)
+
+    grid.create_table()
+    # everything(conf, table_name)
+
+
 if __name__ == '__main__':
 
     _conf = ConfigFactory.parse_file('./Cassandra.conf')
@@ -311,6 +326,8 @@ if __name__ == '__main__':
     everything(_conf, _table_name)
 
     # list_tables(_conf)
+
+    # reset(_conf, _table_name)
 
 
 
