@@ -46,13 +46,13 @@ class BaseTable:
         )
         self.session = self.cluster.connect(None)
 
-        self.log.info("creating keyspace...")
+        self.log.info(f"creating keyspace: {self.keyspace}")
         self.session.execute(f"""
                 CREATE KEYSPACE IF NOT EXISTS {self.keyspace}
                 WITH replication = {{ 'class': 'SimpleStrategy', 'replication_factor': '2' }}
                 """)
 
-        self.log.info("setting keyspace...")
+        self.log.info(f"setting keyspace: {self.keyspace}")
         self.session.set_keyspace(self.keyspace)
 
     def get_session(self):
@@ -138,8 +138,8 @@ class BaseTable:
 
 class PointGrid(BaseTable):
 
-    def __init__(self, host):
-        super().__init__(host, 'grids', 'point_grid')
+    def __init__(self, host, table_name):
+        super().__init__(host, 'grids', table_name)
 
     def create_table(self):
         c_sql = f"""
@@ -237,19 +237,19 @@ def poc(conf):
     # print(rows)
 
 
-def demo(conf):
+def demo(conf, table_name):
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     print(f"current working dir: {dir_path}")
 
-    origin_name = f'{dir_path}/ENERGYGRID'
+    origin_name = f'{dir_path}/{table_name}'
 
     a = f'{origin_name}.json'
 
     with open(a) as json_file:
         data = json.load(json_file)
 
-        grid = PointGrid(conf.host)
+        grid = PointGrid(conf.host, table_name)
         #
         grid.list_keyspaces()
         #
@@ -261,9 +261,9 @@ def demo(conf):
         rows = grid.select_data1(pr=True)
 
 
-def everything(conf, grid_type='electric'):
+def everything(conf, table_name='electric'):
 
-    grid = PointGrid(conf.host)
+    grid = PointGrid(conf.host, table_name)
 
     rows = grid.select_data1(pr=False)
 
@@ -287,7 +287,7 @@ def everything(conf, grid_type='electric'):
         if count > 100:
             break
 
-    print(f"{grid_type} grid entries: {len(point_grid)}")
+    print(f"{table_name} grid entries: {len(point_grid)}")
 
     return point_grid
 
@@ -303,10 +303,12 @@ if __name__ == '__main__':
 
     _conf = ConfigFactory.parse_file('./Cassandra.conf')
 
-    demo(_conf)
+    _table_name = 'HOTSPOTGRID'
+
+    # demo(_conf, _table_name)
     # poc(_conf)
 
-    # everything(_conf, 'point')
+    everything(_conf, _table_name)
 
     # list_tables(_conf)
 
