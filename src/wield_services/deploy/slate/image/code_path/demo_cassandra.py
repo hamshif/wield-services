@@ -11,6 +11,7 @@ from time import sleep
 import logging
 from cassandra import ConsistencyLevel
 from cassandra.cluster import Cluster, BatchStatement
+from cassandra.policies import RoundRobinPolicy
 from cassandra.query import SimpleStatement
 from pyhocon import ConfigFactory
 
@@ -38,7 +39,11 @@ class BaseTable:
         self.cluster.shutdown()
 
     def create_session(self):
-        self.cluster = Cluster([self.host])
+        self.cluster = Cluster(
+            [self.host],
+            load_balancing_policy=RoundRobinPolicy(),
+            protocol_version=3
+        )
         self.session = self.cluster.connect(None)
 
         self.log.info("creating keyspace...")
@@ -131,7 +136,6 @@ class BaseTable:
             [print(f'column: {i}   {i[1]}') for i in column]
 
 
-
 class PointGrid(BaseTable):
 
     def __init__(self, host):
@@ -152,19 +156,70 @@ class PointGrid(BaseTable):
         self.log.info(f"{self.table_name} Table verified !!!")
 
     # lets do some batch insert
-    def insert_data(self):
-        insert_sql = self.session.prepare(f"INSERT INTO  {self.table_name} (x, y, z, point_name , point_value) VALUES (?,?,?,?,?)")
-        batch = BatchStatement()
+    def insert_data(self, data=None):
+        insert_cql_cmd = self.session.prepare(f"INSERT INTO  {self.table_name} (x, y, z, point_name , point_value) VALUES (?,?,?,?,?)")
 
-        for i in range(-5, 20, 1):
+        print(f"insert_cql_cmd:\n{insert_cql_cmd}")
 
-            batch.add(insert_sql, (i, 8, 27, 'Grandma', 0))
-            batch.add(insert_sql, (i, 8, 27, 'BugsBunney', 0))
-            batch.add(insert_sql, (i, 8, 27, 'ElmoreFud', 0))
-            batch.add(insert_sql, (i, 8, 27, 'Kishkashta', 0))
+        batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
+
+        if data is None:
+
+            for i in range(-5, 20, 1):
+
+                batch.add(insert_cql_cmd, (i, 8, 27, 'Grandma', 0))
+                batch.add(insert_cql_cmd, (i, 8, 27, 'BugsBunney', 0))
+                batch.add(insert_cql_cmd, (i, 8, 27, 'ElmoreFud', 0))
+                batch.add(insert_cql_cmd, (i, 8, 27, 'Kishkashta', 0))
+
+        else:
+
+            print("fabulous")
+            statement_count = 0
+
+            for key, value in data.items():
+
+                for k, v in value.items():
+
+                    x, y, z = key.split(',')
+
+                    # print(f"x: {x}, y: {y}, z: {z}, point_name: {k}, point_value: {v}")
+
+                    batch.add(insert_cql_cmd, (int(x), int(y), int(z), k, int(v)))
+
+                    statement_count += 1
+
+                    if statement_count > 200:
+                        statement_count = 0
+                        self.session.execute(batch)
+                        batch.clear()
+                        self.log.info('Intermediate Batch Insert Completed')
 
         self.session.execute(batch)
-        self.log.info('Batch Insert Completed')
+        # self.log.info('Batch Insert Completed')
+
+    def everything(conf):
+
+        grid = PointGrid(conf.host)
+
+        rows = grid.select_data1(pr=False)
+
+        electricity_grid = {}
+
+        for row in rows:
+            electricity_grid[f"{str(row.x)},{str(row.y)},{str(row.x)}"] = {row.atom: row.electricity}
+
+        count = 0
+        for point in electricity_grid.items():
+            print(f"point: {point}")
+            count += 1
+            if count > 100:
+                break
+
+        print(f" grid entries: {len(electricity_grid)}")
+
+        return electricity_grid
+
 
 
 def poc(conf):
@@ -183,59 +238,6 @@ def poc(conf):
     # print(rows)
 
 
-class ElectricityGrid(BaseTable):
-
-    def __init__(self, host):
-        super().__init__(host, 'grids', 'electricity_grid')
-
-    def create_table(self):
-        cql_cmd = f"""
-        CREATE TABLE IF NOT EXISTS {self.table_name} (
-            x int,
-            y int,
-            z int,
-            atom text,
-            electricity double,
-            PRIMARY KEY (x, y, z, atom)
-        )
-        """
-        self.session.execute(cql_cmd)
-        self.log.info(f"{self.table_name} Table verified !!!")
-
-    def insert_data(self, data):
-
-        insert_cql_cmd = self.session.prepare(f"INSERT INTO  {self.table_name} (x, y, z, atom , electricity) VALUES (?,?,?,?,?)")
-        batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
-
-        statement_count = 0
-
-        for key, value in data.items():
-
-            for k, v in value.items():
-
-                x, y, z = key.split(',')
-
-                batch.add(insert_cql_cmd, (int(x), int(y), int(z), k, int(v)))
-
-                statement_count += 1
-
-                if statement_count > 200:
-
-                    statement_count = 0
-                    batch.clear()
-                    self.session.execute(batch)
-                    self.log.info('Intermediate Batch Insert Completed')
-
-        self.session.execute(batch)
-        self.log.info('Batch Insert Completed')
-
-
-class HotspotGrid(BaseTable):
-
-    def __init__(self, host):
-        super().__init__(host, 'grids', 'hotspotgrid')
-
-
 def demo(conf):
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -248,7 +250,7 @@ def demo(conf):
     with open(a) as json_file:
         data = json.load(json_file)
 
-        grid = ElectricityGrid(conf.host)
+        grid = PointGrid(conf.host)
         #
         grid.list_keyspaces()
         #
@@ -257,42 +259,45 @@ def demo(conf):
 
         grid.create_table()
         grid.insert_data(data)
-        rows = grid.select_data(pr=True)
-
-        print(rows)
+        # rows = grid.select_data1(pr=True)
+        #
+        # print(rows)
 
 
 def everything(conf, grid_type='electric'):
 
-    if grid_type is 'electric':
-        grid = ElectricityGrid(conf.host)
-    elif grid_type is 'hotspot':
-        grid = HotspotGrid(conf.host)
-    else:
-        return
+    grid = PointGrid(conf.host)
 
     rows = grid.select_data1(pr=False)
 
-    electricity_grid = {}
+    point_grid = {}
 
     for row in rows:
-        electricity_grid[f"{str(row.x)},{str(row.y)},{str(row.x)}"] = {row.atom: row.electricity}
+
+        print(f"gooz: {row}")
+
+        key = f"{str(row.x)},{str(row.y)},{str(row.x)}"
+
+        if key not in point_grid.keys():
+            point_grid[key] = {}
+
+        point_grid[key][row.point_name] = row.point_value
 
     count = 0
-    for atom in electricity_grid.items():
-        print(atom)
+    for point_name in point_grid.items():
+        print(f"pumen: {point_name}")
         count += 1
         if count > 100:
             break
 
-    print(f"{grid_type} grid entries: {len(electricity_grid)}")
+    print(f"{grid_type} grid entries: {len(point_grid)}")
 
-    return electricity_grid
+    return point_grid
 
 
 def list_tables(conf):
 
-    grid = ElectricityGrid(conf.host)
+    grid = PointGrid(conf.host)
 
     grid.list_tables()
 
@@ -301,10 +306,10 @@ if __name__ == '__main__':
 
     _conf = ConfigFactory.parse_file('./Cassandra.conf')
 
-    # demo(_conf)
+    demo(_conf)
     # poc(_conf)
 
-    everything(_conf, 'hotspot')
+    everything(_conf, 'point')
 
     # list_tables(_conf)
 
