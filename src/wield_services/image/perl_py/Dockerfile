@@ -17,8 +17,6 @@ RUN apk add --no-cache python3 \
     if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi && \
     rm -r /root/.cache
 
-RUN pip3 install --upgrade pip setuptools
-
 RUN pip3 install kafka
 RUN pip3 install kazoo
 RUN pip3 install flask
