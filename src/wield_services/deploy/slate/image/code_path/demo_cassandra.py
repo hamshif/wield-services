@@ -305,13 +305,13 @@ def reset(conf, table_name):
     # everything(conf, table_name)
 
 
-def get_grid_names():
+def get_file_names():
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     print(f"current working dir: {dir_path}")
 
     grid_names = []
-    for (dirpath, dirnames, filenames) in os.walk(f'{dir_path}/GRIDS'):
+    for (dirpath, dirnames, filenames) in os.walk(f'{dir_path}/COMPACT'):
 
         # grid_names = [grid.replace('.json', '') for grid in filenames if '.json' in grid]
 
@@ -336,7 +336,7 @@ def create_table(table_name, conf):
 
 def create_tables(conf):
 
-    file_names = get_grid_names()
+    file_names = get_file_names()
 
     source = rx.from_(file_names)
 
@@ -366,9 +366,9 @@ if __name__ == '__main__':
     # # demo(_conf, _table_name)
     # # poc(_conf)
     #
-    # everything(_conf, _table_name)
+    everything(_conf, _table_name)
 
-    list_tables(_conf, _table_name)
+    # list_tables(_conf, _table_name)
 
     # reset(_conf, _table_name)
 
