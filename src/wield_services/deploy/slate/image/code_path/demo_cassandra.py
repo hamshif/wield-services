@@ -19,6 +19,7 @@ import rx
 from rx import operators as ops
 import concurrent.futures
 
+
 class BaseTable:
 
     def __init__(self, host, keyspace, table_name, with_logger=True, with_session=True):

@@ -10,6 +10,7 @@ from wield_services.wield.deploy.util import get_locale, get_module_locale
 from wield_services.wield.deploy.configurer import get_project_deploy_mode
 
 import rx
+from rx import operators as ops
 import concurrent.futures
 
 
@@ -115,9 +116,12 @@ def micros_wield(parallel=True, action=None, delete_project_res=False):
 
     if parallel:
 
+        source = rx.from_(init_tuples)
+
         with concurrent.futures.ProcessPoolExecutor(len(init_tuples)) as executor:
-            rx.Observable.from_(init_tuples).flat_map(
-                lambda s: executor.submit(
+
+            composed = source.pipe(
+                ops.flat_map(lambda s: executor.submit(
                     s[0],
                     name=s[1],
                     mode=wield_mode,
@@ -125,8 +129,9 @@ def micros_wield(parallel=True, action=None, delete_project_res=False):
                     project_override=True,
                     action=action,
                     auto_approve=True
-                )
-            ).subscribe(output)
+                ))
+            )
+            composed.subscribe(output)
 
     else:
 
