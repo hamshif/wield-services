@@ -15,6 +15,9 @@ from cassandra.policies import RoundRobinPolicy
 from cassandra.query import SimpleStatement
 from pyhocon import ConfigFactory
 
+import rx
+from rx import operators as ops
+import concurrent.futures
 
 class BaseTable:
 
@@ -279,9 +282,9 @@ def everything(conf, table_name='electric'):
     return point_grid
 
 
-def list_tables(conf):
+def list_tables(conf, table_name):
 
-    grid = PointGrid(conf.host)
+    grid = PointGrid(conf.host, table_name)
 
     grid.list_tables()
 
@@ -301,18 +304,70 @@ def reset(conf, table_name):
     # everything(conf, table_name)
 
 
+def get_grid_names():
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    print(f"current working dir: {dir_path}")
+
+    grid_names = []
+    for (dirpath, dirnames, filenames) in os.walk(f'{dir_path}/GRIDS'):
+
+        # grid_names = [grid.replace('.json', '') for grid in filenames if '.json' in grid]
+
+        grid_names.extend(filenames)
+        break
+
+    # print(grid_names)
+
+    return grid_names
+
+
+def create_table(table_name, conf):
+
+    # print(table_name)
+    grid = PointGrid(conf.host, table_name)
+    grid.create_table()
+
+    # grid.everything()
+
+    return f"created:  {table_name}"
+
+
+def create_tables(conf):
+
+    file_names = get_grid_names()
+
+    source = rx.from_(file_names)
+
+    print(type(source))
+
+    max_threads = 5
+
+    with concurrent.futures.ProcessPoolExecutor(max_threads) as executor:
+
+        composed = source.pipe(
+            ops.filter(lambda file_name: '.json' in file_name),
+            ops.map(lambda file_name: file_name.replace('.json', '')),
+            ops.flat_map(lambda grid_name: executor.submit(create_table, grid_name, conf))
+        )
+        # composed.subscribe(create_table)
+        composed.subscribe(lambda value: print(f"Received {value}"))
+
+
 if __name__ == '__main__':
 
     _conf = ConfigFactory.parse_file('./Cassandra.conf')
 
+    # create_tables(_conf)
+
     _table_name = 'HOTSPOTGRID'
+    #
+    # # demo(_conf, _table_name)
+    # # poc(_conf)
+    #
+    # everything(_conf, _table_name)
 
-    # demo(_conf, _table_name)
-    # poc(_conf)
-
-    everything(_conf, _table_name)
-
-    # list_tables(_conf)
+    list_tables(_conf, _table_name)
 
     # reset(_conf, _table_name)
 
