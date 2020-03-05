@@ -41,8 +41,8 @@ class BaseTable:
     def create_session(self):
         self.cluster = Cluster(
             [self.host],
-            load_balancing_policy=RoundRobinPolicy(),
-            protocol_version=3
+            # load_balancing_policy=RoundRobinPolicy(),
+            # protocol_version=65
         )
         self.session = self.cluster.connect(None)
 
