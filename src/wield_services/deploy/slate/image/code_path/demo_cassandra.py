@@ -106,7 +106,7 @@ class BaseTable:
         self.cluster = Cluster([self.host])
         self.session = self.cluster.connect(None)
 
-        rows = self.session.execute(f"SELECT keyspace_name FROM system_schema.keyspaces")
+        rows = self.session.execute(f"SELECT keyspace_name FROM system_schema.keyspaces", timeout=20)
         if keyspace in [row[0] for row in rows]:
             self.log.info("dropping existing keyspace: {keyspace}")
             self.session.execute(f"DROP KEYSPACE {keyspace}")

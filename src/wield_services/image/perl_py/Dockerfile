@@ -26,6 +26,7 @@ RUN pip3 install kafka-python
 RUN pip3 install kubernetes
 RUN pip3 install pyhocon
 RUN pip3 install confluent-kafka
+RUN pip3 install rx
 
 ARG VERSION=1.4.0
 
