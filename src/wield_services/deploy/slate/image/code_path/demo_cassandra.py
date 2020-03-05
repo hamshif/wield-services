@@ -198,27 +198,36 @@ class PointGrid(BaseTable):
         self.session.execute(batch)
         # self.log.info('Batch Insert Completed')
 
-    def everything(conf):
+    def everything(self, pr=True):
 
-        grid = PointGrid(conf.host)
+        rows = self.select_data1(pr=False)
 
-        rows = grid.select_data1(pr=False)
-
-        electricity_grid = {}
-
-        for row in rows:
-            electricity_grid[f"{str(row.x)},{str(row.y)},{str(row.x)}"] = {row.atom: row.electricity}
+        point_grid = {}
 
         count = 0
-        for point in electricity_grid.items():
-            print(f"point: {point}")
-            count += 1
-            if count > 100:
-                break
 
-        print(f" grid entries: {len(electricity_grid)}")
+        for row in rows:
 
-        return electricity_grid
+            point = f"{str(row.x)},{str(row.y)},{str(row.x)}"
+
+            if point not in point_grid.keys():
+                point_grid[point] = {}
+
+            point_grid[point][row.point_name] = row.point_value
+
+        if pr:
+            for point in point_grid.items():
+
+                print(point)
+
+                count += 1
+
+                if count > 100:
+                    break
+
+        print(f"{self.table_name} has {len(point_grid)} points")
+
+        return point_grid
 
 
 def poc(conf):
@@ -265,29 +274,7 @@ def everything(conf, table_name='electric'):
 
     grid = PointGrid(conf.host, table_name)
 
-    rows = grid.select_data1(pr=False)
-
-    point_grid = {}
-
-    for row in rows:
-
-        # print(f"row: {row}")
-
-        key = f"{str(row.x)},{str(row.y)},{str(row.x)}"
-
-        if key not in point_grid.keys():
-            point_grid[key] = {}
-
-        point_grid[key][row.point_name] = row.point_value
-
-    count = 0
-    for point_name in point_grid.items():
-        print(f"row: {point_name}")
-        count += 1
-        if count > 100:
-            break
-
-    print(f"{table_name} grid entries: {len(point_grid)}")
+    point_grid = grid.everything()
 
     return point_grid
 
