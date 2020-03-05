@@ -52,12 +52,9 @@ def beautify_file(file_name, dir_path, origin_dir='COMPACT', destination_dir='BE
     return f"pretty: {destination_full_path}"
 
 
-if __name__ == '__main__':
+def beutify_all_in_path(dir_path):
 
-    _dir_path = os.path.dirname(os.path.realpath(__file__))
-    print(f"current working dir: {_dir_path}")
-
-    uglies = get_file_names(_dir_path)
+    uglies = get_file_names(dir_path)
 
     source = rx.from_(uglies)
     max_threads = 5
@@ -76,3 +73,13 @@ if __name__ == '__main__':
             )
         )
         composed.subscribe(lambda file_name: print(f"Received {file_name}"))
+
+
+if __name__ == '__main__':
+
+    _dir_path = os.path.dirname(os.path.realpath(__file__))
+    print(f"current working dir: {_dir_path}")
+
+    beutify_all_in_path(_dir_path)
+
+
