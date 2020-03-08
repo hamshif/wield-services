@@ -52,7 +52,7 @@ def beautify_file(file_name, dir_path, origin_dir='COMPACT', destination_dir='BE
     return f"pretty: {destination_full_path}"
 
 
-def beutify_all_in_path(dir_path):
+def beautify_all_in_path(dir_path):
 
     uglies = get_file_names(dir_path)
 
@@ -80,6 +80,6 @@ if __name__ == '__main__':
     _dir_path = os.path.dirname(os.path.realpath(__file__))
     print(f"current working dir: {_dir_path}")
 
-    beutify_all_in_path(_dir_path)
+    beautify_all_in_path(_dir_path)
 
 

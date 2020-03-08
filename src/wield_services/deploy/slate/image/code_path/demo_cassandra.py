@@ -219,15 +219,11 @@ class PointGrid(BaseTable):
 
             point_grid[point][row.point_name] = row.point_value
 
-        if pr:
-            for point in point_grid.items():
+            if pr and count < 100:
 
-                print(point)
+                print(point_grid[point])
 
                 count += 1
-
-                if count > 100:
-                    break
 
         print(f"{self.table_name} has {len(point_grid)} points")
 
