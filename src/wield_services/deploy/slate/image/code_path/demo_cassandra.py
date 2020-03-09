@@ -325,13 +325,18 @@ class PointGrid(BaseTable):
 
                         elif self.depth == 3:
 
-                            for k2, v2 in v1.items():
-                                # print(f"x: {x}, y: {y}, z: {z}, point_type: {k1}, point_name: {k2}, point_value: {v2}")
-                                upsert = (int(x), int(y), int(z), k1, k2, int(v2))
-
+                            if isinstance(v1, str):
+                                upsert = (int(x), int(y), int(z), k1, v1, None)
                                 self.maybe_upsert_batch(upsert)
+                            else:
+                                for k2, v2 in v1.items():
+                                    # print(f"x: {x}, y: {y}, z: {z}, point_type: {k1}, point_name: {k2}, point_value: {v2}")
 
-                                continue
+                                    upsert = (int(x), int(y), int(z), k1, k2, int(v2))
+
+                                    self.maybe_upsert_batch(upsert)
+
+                                    continue
 
         self.session.execute(self.batch)
         # self.log.info('Batch Insert Completed')
@@ -347,6 +352,8 @@ class PointGrid(BaseTable):
         count = 0
 
         for row in rows:
+
+            # print(f"{row}")
 
             point = f"{str(row.x)},{str(row.y)},{str(row.x)}"
 
@@ -369,7 +376,7 @@ class PointGrid(BaseTable):
             else:
                 point_grid[point] = row.point_value
 
-            if pr and count < 10:
+            if pr and count < 100:
 
                 print(point_grid[point])
 
@@ -653,11 +660,11 @@ if __name__ == '__main__':
 
     # create_tables_from_json_files(_conf)
 
-    _table_name = 'BASEGRID'
+    _table_name = 'POINTS'
     #
     # _full_path = f'{dir_path}/COMPACT/{_table_name}.json'
     #
-    # _depth = 1
+    _depth = 3
 
     # create_table(_table_name, _conf, depth=_depth, point_primary_key=False)
     # list_tables(_conf, _table_name)
