@@ -177,6 +177,17 @@ class PointGrid(BaseTable):
 
     def __init__(self, host, table_name, depth=1, point_primary_key=True, value_list=False):
         """
+        hocon config example:
+
+        point_grids: [
+
+            # grid name, grid depth, point is key, value is list
+
+              [bugs_bunny, 1, true, false]
+              [elmore_fud, 1, true, true]
+              [duffy_duck, 2, true, false]
+              [road_runner, 3, true, false]
+        ]
 
         :param host: the url of Cassandra for connection
         :type host: str
