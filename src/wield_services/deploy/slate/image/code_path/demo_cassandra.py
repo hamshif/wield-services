@@ -50,13 +50,13 @@ class BaseTable:
         )
         self.session = self.cluster.connect(None)
 
-        self.log.info(f"creating keyspace: {self.keyspace}")
+        # self.log.info(f"creating keyspace: {self.keyspace}")
         self.session.execute(f"""
                 CREATE KEYSPACE IF NOT EXISTS {self.keyspace}
                 WITH replication = {{ 'class': 'SimpleStrategy', 'replication_factor': '2' }}
                 """)
 
-        self.log.info(f"keyspace: {self.keyspace} verified")
+        # self.log.info(f"keyspace: {self.keyspace} verified")
         self.session.set_keyspace(self.keyspace)
 
     def get_session(self):
@@ -139,6 +139,11 @@ class BaseTable:
 
             [print(f'column: {i}   {i[1]}') for i in column]
 
+    def del_table(self):
+
+        res = self.session.execute(f"DROP TABLE IF EXISTS {self.table_name};")
+        print(res)
+
 
 class PointGrid(BaseTable):
     """
@@ -158,7 +163,7 @@ class PointGrid(BaseTable):
                 "O": 0.149137080210051,
     """
 
-    def __init__(self, host, table_name, depth=1):
+    def __init__(self, host, table_name, depth=1, point_primary_key=True):
 
         if depth > 3 or depth < 1:
             raise ValueError(f'Supports 3 depth values of nested dictionaries 1, 2, 3 you entered {depth}')
@@ -166,6 +171,7 @@ class PointGrid(BaseTable):
         super().__init__(host, 'grids', table_name)
         self.upsert_count = 0
         self.depth = depth
+        self.point_primary_key = point_primary_key
 
     def create_table(self):
 
@@ -173,15 +179,30 @@ class PointGrid(BaseTable):
 
         if self.depth == 1:
 
-            c_sql = f"""
-            CREATE TABLE IF NOT EXISTS {self.table_name} (
-                x int,
-                y int,
-                z int,
-                point_value double,
-                PRIMARY KEY (x, y, z)
-            )
-            """
+            if self.point_primary_key:
+
+                c_sql = f"""
+                CREATE TABLE IF NOT EXISTS {self.table_name} (
+                    x int,
+                    y int,
+                    z int,
+                    point_value double,
+                    PRIMARY KEY (x, y, z)
+                )
+                """
+
+            else:
+
+                c_sql = f"""
+                CREATE TABLE IF NOT EXISTS {self.table_name} (
+                    x int,
+                    y int,
+                    z int,
+                    point_value text,
+                    PRIMARY KEY (point_value)
+                )
+                """
+
         elif self.depth == 2:
 
             c_sql = f"""
@@ -271,15 +292,19 @@ class PointGrid(BaseTable):
 
         else:
 
-            print("fabulous")
+            for k, v in data.items():
 
-            for point, v in data.items():
-
-                x, y, z = point.split(',')
+                if self.point_primary_key:
+                    x, y, z = k.split(',')
+                else:
+                    x, y, z = v.split(',')
 
                 if self.depth == 1:
 
-                    upsert = (int(x), int(y), int(z), int(v))
+                    if self.point_primary_key:
+                        upsert = (int(x), int(y), int(z), int(v))
+                    else:
+                        upsert = (int(x), int(y), int(z), k)
 
                     self.maybe_upsert_batch(upsert)
 
@@ -355,26 +380,14 @@ class PointGrid(BaseTable):
         return point_grid
 
 
-def poc(conf):
+def everything(conf, table_name, depth, point_primary_key):
 
-    grid = PointGrid(conf.host)
-
-    grid.list_keyspaces()
-
-    grid.del_keyspace()
-    grid.list_keyspaces()
-
-    # grid.create_table()
-    # grid.insert_data()
-    # rows = grid.select_data(pr=True)
-    #
-    # print(rows)
-
-
-def everything(conf, table_name='electric', depth=1):
-
-    print(f"depth: {depth}")
-    grid = PointGrid(conf.host, table_name, depth=depth)
+    grid = PointGrid(
+        host=conf.host,
+        table_name=table_name,
+        depth=depth,
+        point_primary_key=point_primary_key
+    )
 
     point_grid = grid.everything()
 
@@ -390,7 +403,10 @@ def list_tables(conf, table_name):
 
 def reset(conf, table_name):
 
-    grid = PointGrid(conf.host, table_name)
+    grid = PointGrid(
+        host=conf.host,
+        table_name=table_name
+    )
 
     grid.list_keyspaces()
 
@@ -419,10 +435,15 @@ def get_file_names():
     return grid_names
 
 
-def create_table(table_name, conf, depth):
+def create_table(conf, table_name, depth, point_primary_key):
 
-    # print(table_name)
-    grid = PointGrid(conf.host, table_name, depth=depth)
+    grid = PointGrid(
+        host=conf.host,
+        table_name=table_name,
+        depth=depth,
+        point_primary_key=point_primary_key
+    )
+
     grid.create_table()
 
     # grid.everything()
@@ -451,7 +472,7 @@ def create_tables_from_json_files(conf):
         composed.subscribe(lambda value: print(f"Received {value}"))
 
 
-def populate_table(conf, full_path, table_name, depth):
+def populate_table(conf, full_path, table_name, depth, point_primary_key):
 
     print(f"table name: {table_name} depth: {depth} full path: {full_path}")
 
@@ -460,14 +481,14 @@ def populate_table(conf, full_path, table_name, depth):
         try:
             data = json.load(json_file)
 
-            grid = PointGrid(conf.host, table_name, depth=depth)
+            grid = PointGrid(conf.host, table_name, depth=depth, point_primary_key=point_primary_key)
             #
             # grid.list_keyspaces()
             #
             # grid.del_keyspace()
             # grid.list_keyspaces()
 
-            grid.create_table()
+            # grid.create_table()
             grid.insert_data(data)
             # rows = grid.select_data1(pr=True)
 
@@ -497,12 +518,12 @@ def populate_tables_from_files(conf):
             for t in table_tuples:
 
                 if t[0] == g:
-                    grid_tuple = (g, t[1], full_name)
+                    grid_tuple = (g, t[1], full_name, t[2])
 
                     grid_tuples.append(grid_tuple)
                     break
 
-    [print(grid_tuple) for grid_tuple in grid_tuples]
+    [print(f'grid_tuple: {grid_tuple}') for grid_tuple in grid_tuples]
 
     source_files = rx.from_(grid_tuples)
 
@@ -510,7 +531,6 @@ def populate_tables_from_files(conf):
 
     with concurrent.futures.ProcessPoolExecutor(max_threads) as executor:
 
-        a = []
         obs_files = source_files.pipe(
 
             # ops.concat(source_tuples),
@@ -532,6 +552,7 @@ def populate_tables_from_files(conf):
                     grid_tup[2],
                     grid_tup[0],
                     grid_tup[1],
+                    grid_tup[3],
                 )
             )
         )
@@ -546,9 +567,7 @@ def get_table_tuples_from_conf(conf):
 
     grid_type_tups = []
 
-    [grid_type_tups.append((grid, 1)) for grid in grid_conf.point_grids_depth1]
-    [grid_type_tups.append((grid, 2)) for grid in grid_conf.point_grids_depth2]
-    [grid_type_tups.append((grid, 3)) for grid in grid_conf.point_grids_depth3]
+    [grid_type_tups.append((grid[0], grid[1], grid[2])) for grid in grid_conf.point_grids]
 
     return grid_type_tups
 
@@ -557,13 +576,14 @@ def create_tables(conf):
 
     grid_type_tuples = get_table_tuples_from_conf(conf)
 
-    source = rx.from_(grid_type_tuples[1:])
+    source = rx.from_(grid_type_tuples)
 
     max_threads = 5
 
     with concurrent.futures.ProcessPoolExecutor(max_threads) as executor:
         composed = source.pipe(
-            ops.flat_map(lambda grid_tuple: executor.submit(create_table, grid_tuple[0], conf, grid_tuple[1]))
+            ops.flat_map(lambda gt: executor.submit(create_table, conf, gt[0], gt[1], gt[2]))
+            # ops.map(lambda grid_tuple: grid_tuple)
         )
         # composed.subscribe(create_table)
         composed.subscribe(lambda value: print(f"Received {value}"))
@@ -573,11 +593,13 @@ def check_grids(conf):
 
     grid_type_tuples = get_table_tuples_from_conf(conf)
 
-    for grid_tuple in grid_type_tuples:
-        everything(conf, grid_tuple[0], grid_tuple[1])
-        sleep(5)
+    snooze = 5
 
-    # everything(conf, _table_name, 2)
+    for grid_tuple in grid_type_tuples:
+
+        print(f"snoozing for {snooze} before checking {grid_tuple[0]} table")
+        sleep(snooze)
+        everything(conf, grid_tuple[0], grid_tuple[1], grid_tuple[2])
 
 
 def global_test(conf):
@@ -605,6 +627,19 @@ def global_test(conf):
     check_grids(_conf)
 
 
+def del_table(table_name, conf, depth, point_primary_key=True):
+
+    # print(table_name)
+    grid = PointGrid(
+        conf.host,
+        table_name,
+        depth=depth,
+        point_primary_key=point_primary_key
+    )
+
+    grid.del_table()
+
+
 if __name__ == '__main__':
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -618,20 +653,31 @@ if __name__ == '__main__':
 
     # create_tables_from_json_files(_conf)
 
-    # _table_name = 'CONCAVITYGRID'
+    _table_name = 'BASEGRID'
     #
-    # origin_name = f'{dir_path}/COMPACT/{_table_name}'
+    # _full_path = f'{dir_path}/COMPACT/{_table_name}.json'
     #
-    # _full_path = f'{origin_name}.json'
+    # _depth = 1
 
-    # check_grids(_conf)
+    # create_table(_table_name, _conf, depth=_depth, point_primary_key=False)
+    # list_tables(_conf, _table_name)
+    # del_table(_table_name, _conf, depth=_depth, point_primary_key=False)
+    # list_tables(_conf, _table_name)
 
     # populate_table(
     #     conf=_conf,
     #     full_path=_full_path,
     #     table_name=_table_name,
-    #     depth=1
+    #     depth=_depth,
+    #     point_primary_key=False
     # )
+    # everything(_conf, _table_name, _depth, True)
+
+    # tups = get_table_tuples_from_conf(_conf)
+
+    # check_grids(_conf)
+
+
     # poc(_conf)
     #
     # everything(_conf, _table_name, 2)
