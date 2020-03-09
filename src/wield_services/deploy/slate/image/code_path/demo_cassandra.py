@@ -56,7 +56,7 @@ class BaseTable:
                 WITH replication = {{ 'class': 'SimpleStrategy', 'replication_factor': '2' }}
                 """)
 
-        self.log.info(f"setting keyspace: {self.keyspace}")
+        self.log.info(f"keyspace: {self.keyspace} verified")
         self.session.set_keyspace(self.keyspace)
 
     def get_session(self):
@@ -109,7 +109,7 @@ class BaseTable:
 
         rows = self.session.execute(f"SELECT keyspace_name FROM system_schema.keyspaces", timeout=20)
         if keyspace in [row[0] for row in rows]:
-            self.log.info("dropping existing keyspace: {keyspace}")
+            self.log.info(f"dropping existing keyspace: {keyspace}")
             self.session.execute(f"DROP KEYSPACE {keyspace}")
         else:
             self.log.info(f"could'nt find keyspace: {keyspace}")
@@ -141,66 +141,177 @@ class BaseTable:
 
 
 class PointGrid(BaseTable):
+    """
+    PointGrid is a generalised Cassandra table structure for 3D spatial data.
+    Supports 3 depths of nested dictionaries:
 
-    def __init__(self, host, table_name):
+     depth 1 example:
+        "25,17,11": 90,
+
+     depth 2 example:
+        "2,26,19": {
+            "CA": -0.366544987779325,
+
+     depth 3 example:
+        "10,15,2": {
+            "ENERGY": {
+                "O": 0.149137080210051,
+    """
+
+    def __init__(self, host, table_name, depth=1):
+
+        if depth > 3 or depth < 1:
+            raise ValueError(f'Supports 3 depth values of nested dictionaries 1, 2, 3 you entered {depth}')
+
         super().__init__(host, 'grids', table_name)
+        self.upsert_count = 0
+        self.depth = depth
 
     def create_table(self):
-        c_sql = f"""
-        CREATE TABLE IF NOT EXISTS {self.table_name} (
-            x int,
-            y int,
-            z int,
-            point_name text,
-            point_value double,
-            PRIMARY KEY (x, y, z, point_name)
-        )
-        """
+
+        c_sql = 'mistake'
+
+        if self.depth == 1:
+
+            c_sql = f"""
+            CREATE TABLE IF NOT EXISTS {self.table_name} (
+                x int,
+                y int,
+                z int,
+                point_value double,
+                PRIMARY KEY (x, y, z)
+            )
+            """
+        elif self.depth == 2:
+
+            c_sql = f"""
+            CREATE TABLE IF NOT EXISTS {self.table_name} (
+                x int,
+                y int,
+                z int,
+                point_name text,
+                point_value double,
+                PRIMARY KEY (x, y, z, point_name)
+            )
+            """
+
+        elif self.depth == 3:
+
+            c_sql = f"""
+            CREATE TABLE IF NOT EXISTS {self.table_name} (
+                x int,
+                y int,
+                z int,
+                point_type text,
+                point_name text,
+                point_value double,
+                PRIMARY KEY (x, y, z, point_type, point_name)
+            )
+            """
+
         self.session.execute(c_sql)
         self.log.info(f"{self.table_name} Table verified !!!")
 
-    # lets do some batch insert
+    def maybe_upsert_batch(self, upsert):
+
+        self.batch.add(self.upsert_cql_cmd, upsert)
+        self.upsert_count += 1
+
+        if self.upsert_count > 100:
+            self.upsert_count = 0
+            self.session.execute(self.batch)
+            self.batch.clear()
+            self.log.info(f'Intermediate Batch Insert Completed {self.table_name}')
+
+        # lets do some batch insert
     def insert_data(self, data=None):
-        insert_cql_cmd = self.session.prepare(f"INSERT INTO  {self.table_name} (x, y, z, point_name , point_value) VALUES (?,?,?,?,?)")
 
-        print(f"insert_cql_cmd:\n{insert_cql_cmd}")
+        if self.depth == 1:
 
-        batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
+            self.upsert_cql_cmd = self.session.prepare(
+                f"INSERT INTO  {self.table_name} (x, y, z, point_value) VALUES (?,?,?,?)"
+            )
+        elif self.depth == 2:
+            self.upsert_cql_cmd = self.session.prepare(
+                f"INSERT INTO  {self.table_name} (x, y, z, point_name , point_value) VALUES (?,?,?,?,?)"
+            )
+        elif self.depth == 3:
+            self.upsert_cql_cmd = self.session.prepare(
+                f"INSERT INTO  {self.table_name} (x, y, z, point_type, point_name , point_value) VALUES (?,?,?,?,?,?)"
+            )
+        # else:
+        #     ec
+
+        print(f"insert_cql_cmd:\n{self.upsert_cql_cmd}")
+
+        self.batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
 
         if data is None:
 
             for i in range(-5, 20, 1):
 
-                batch.add(insert_cql_cmd, (i, 8, 27, 'Grandma', 0))
-                batch.add(insert_cql_cmd, (i, 8, 27, 'BugsBunney', 0))
-                batch.add(insert_cql_cmd, (i, 8, 27, 'ElmoreFud', 0))
-                batch.add(insert_cql_cmd, (i, 8, 27, 'Kishkashta', 0))
+                if self.depth == 1:
+
+                    upsert = (i, 8, 27, 0)
+                    self.batch.add(self.upsert_cql_cmd, upsert)
+
+                elif self.depth == 2:
+
+                    for key_tup in ['Grandma', 'BugsBunny', 'ElmoreFud', 'Kishkashta']:
+
+                        upsert = (i, 8, 27, key_tup, 0)
+                        self.batch.add(self.upsert_cql_cmd, upsert)
+
+                elif self.depth == 3:
+
+                    for key_tup in [('toon', 'Grandma'), ('superHero', 'BugsBunny'), ('Human', 'ElmoreFud'), ('Human', 'Kishkashta')]:
+
+                        upsert = (i, 8, 27, key_tup[0], key_tup[1], 0)
+                        self.batch.add(self.upsert_cql_cmd, upsert)
 
         else:
 
             print("fabulous")
-            statement_count = 0
 
-            for key, value in data.items():
+            for point, v in data.items():
 
-                for k, v in value.items():
+                x, y, z = point.split(',')
 
-                    x, y, z = key.split(',')
+                if self.depth == 1:
 
-                    # print(f"x: {x}, y: {y}, z: {z}, point_name: {k}, point_value: {v}")
+                    upsert = (int(x), int(y), int(z), int(v))
 
-                    batch.add(insert_cql_cmd, (int(x), int(y), int(z), k, int(v)))
+                    self.maybe_upsert_batch(upsert)
 
-                    statement_count += 1
+                    continue
 
-                    if statement_count > 200:
-                        statement_count = 0
-                        self.session.execute(batch)
-                        batch.clear()
-                        self.log.info('Intermediate Batch Insert Completed')
+                elif self.depth == 2 or self.depth == 3:
 
-        self.session.execute(batch)
+                    for k1, v1 in v.items():
+
+                        if self.depth == 2:
+
+                            # print(f"x: {x}, y: {y}, z: {z}, point_name: {k1}, point_value: {v1}")
+                            upsert = (int(x), int(y), int(z), k1, int(v1))
+
+                            self.maybe_upsert_batch(upsert)
+
+                            continue
+
+                        elif self.depth == 3:
+
+                            for k2, v2 in v1.items():
+                                # print(f"x: {x}, y: {y}, z: {z}, point_type: {k1}, point_name: {k2}, point_value: {v2}")
+                                upsert = (int(x), int(y), int(z), k1, k2, int(v2))
+
+                                self.maybe_upsert_batch(upsert)
+
+                                continue
+
+        self.session.execute(self.batch)
         # self.log.info('Batch Insert Completed')
+
+    # def deserialize_row(self):
 
     def everything(self, pr=True):
 
@@ -214,12 +325,26 @@ class PointGrid(BaseTable):
 
             point = f"{str(row.x)},{str(row.y)},{str(row.x)}"
 
-            if point not in point_grid.keys():
-                point_grid[point] = {}
+            if self.depth > 1:
 
-            point_grid[point][row.point_name] = row.point_value
+                if point not in point_grid.keys():
+                    point_grid[point] = {}
 
-            if pr and count < 100:
+                if self.depth == 2:
+
+                    point_grid[point][row.point_name] = row.point_value
+
+                elif self.depth == 3:
+
+                    if row.point_type not in point_grid[point].keys():
+                        point_grid[point][row.point_type] = {}
+
+                    point_grid[point][row.point_type][row.point_name] = row.point_value
+
+            else:
+                point_grid[point] = row.point_value
+
+            if pr and count < 10:
 
                 print(point_grid[point])
 
@@ -246,33 +371,10 @@ def poc(conf):
     # print(rows)
 
 
-def demo(conf, table_name):
+def everything(conf, table_name='electric', depth=1):
 
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    print(f"current working dir: {dir_path}")
-
-    origin_name = f'{dir_path}/{table_name}'
-
-    a = f'{origin_name}.json'
-
-    with open(a) as json_file:
-        data = json.load(json_file)
-
-        grid = PointGrid(conf.host, table_name)
-        #
-        grid.list_keyspaces()
-        #
-        # grid.del_keyspace()
-        # grid.list_keyspaces()
-
-        grid.create_table()
-        grid.insert_data(data)
-        rows = grid.select_data1(pr=True)
-
-
-def everything(conf, table_name='electric'):
-
-    grid = PointGrid(conf.host, table_name)
+    print(f"depth: {depth}")
+    grid = PointGrid(conf.host, table_name, depth=depth)
 
     point_grid = grid.everything()
 
@@ -297,7 +399,7 @@ def reset(conf, table_name):
 
     grid = PointGrid(conf.host, table_name)
 
-    grid.create_table()
+    # grid.create_table()
     # everything(conf, table_name)
 
 
@@ -309,8 +411,6 @@ def get_file_names():
     grid_names = []
     for (dirpath, dirnames, filenames) in os.walk(f'{dir_path}/COMPACT'):
 
-        # grid_names = [grid.replace('.json', '') for grid in filenames if '.json' in grid]
-
         grid_names.extend(filenames)
         break
 
@@ -319,10 +419,10 @@ def get_file_names():
     return grid_names
 
 
-def create_table(table_name, conf):
+def create_table(table_name, conf, depth):
 
     # print(table_name)
-    grid = PointGrid(conf.host, table_name)
+    grid = PointGrid(conf.host, table_name, depth=depth)
     grid.create_table()
 
     # grid.everything()
@@ -330,13 +430,13 @@ def create_table(table_name, conf):
     return f"created:  {table_name}"
 
 
-def create_tables(conf):
+def create_tables_from_json_files(conf):
 
     file_names = get_file_names()
 
     source = rx.from_(file_names)
 
-    print(type(source))
+    # print(type(source))
 
     max_threads = 5
 
@@ -351,23 +451,198 @@ def create_tables(conf):
         composed.subscribe(lambda value: print(f"Received {value}"))
 
 
+def populate_table(conf, full_path, table_name, depth):
+
+    print(f"table name: {table_name} depth: {depth} full path: {full_path}")
+
+    with open(full_path) as json_file:
+
+        try:
+            data = json.load(json_file)
+
+            grid = PointGrid(conf.host, table_name, depth=depth)
+            #
+            # grid.list_keyspaces()
+            #
+            # grid.del_keyspace()
+            # grid.list_keyspaces()
+
+            grid.create_table()
+            grid.insert_data(data)
+            # rows = grid.select_data1(pr=True)
+
+        except Exception as e:
+            print(f"Error occurred while trying to run bash command: {e}")
+
+            return f'failed {table_name}'
+
+        return f'populated {table_name}'
+
+
+def populate_tables_from_files(conf):
+
+    grid_tuples = []
+    table_tuples = get_table_tuples_from_conf(conf)
+
+    # TODO find out how to use rx to combine and group by
+
+    for (dirpath, dirnames, filenames) in os.walk(f'{conf.dir_path}/COMPACT'):
+
+        for file_name in filenames:
+
+            full_name = f'{dirpath}/{file_name}'
+            g = file_name.replace('.json', '')
+            # print(full_name)
+
+            for t in table_tuples:
+
+                if t[0] == g:
+                    grid_tuple = (g, t[1], full_name)
+
+                    grid_tuples.append(grid_tuple)
+                    break
+
+    [print(grid_tuple) for grid_tuple in grid_tuples]
+
+    source_files = rx.from_(grid_tuples)
+
+    max_threads = 5
+
+    with concurrent.futures.ProcessPoolExecutor(max_threads) as executor:
+
+        a = []
+        obs_files = source_files.pipe(
+
+            # ops.concat(source_tuples),
+            # ops.reduce(lambda acc, y: acc.append[y]),
+
+            # ops.group_by(lambda x: x[0]),
+            # ops.map(lambda grp: type(grp)),
+
+            # ops.
+            # ops.reduce(lambda acc, b: acc.append(b)),
+
+            # ops.zip(source_files, source_tuples),
+            # ops.filter(lambda grid_tuple: '.json' in grid_tuple),
+            # ops.map(lambda file_name: file_name.replace('.json', '')),
+            ops.flat_map(
+                lambda grid_tup: executor.submit(
+                    populate_table,
+                    conf,
+                    grid_tup[2],
+                    grid_tup[0],
+                    grid_tup[1],
+                )
+            )
+        )
+
+        # composed.subscribe(create_table)
+        obs_files.subscribe(lambda value: print(f"Received {value}"))
+
+
+def get_table_tuples_from_conf(conf):
+
+    grid_conf = ConfigFactory.parse_file('./Grids.conf')
+
+    grid_type_tups = []
+
+    [grid_type_tups.append((grid, 1)) for grid in grid_conf.point_grids_depth1]
+    [grid_type_tups.append((grid, 2)) for grid in grid_conf.point_grids_depth2]
+    [grid_type_tups.append((grid, 3)) for grid in grid_conf.point_grids_depth3]
+
+    return grid_type_tups
+
+
+def create_tables(conf):
+
+    grid_type_tuples = get_table_tuples_from_conf(conf)
+
+    source = rx.from_(grid_type_tuples[1:])
+
+    max_threads = 5
+
+    with concurrent.futures.ProcessPoolExecutor(max_threads) as executor:
+        composed = source.pipe(
+            ops.flat_map(lambda grid_tuple: executor.submit(create_table, grid_tuple[0], conf, grid_tuple[1]))
+        )
+        # composed.subscribe(create_table)
+        composed.subscribe(lambda value: print(f"Received {value}"))
+
+
+def check_grids(conf):
+
+    grid_type_tuples = get_table_tuples_from_conf(conf)
+
+    for grid_tuple in grid_type_tuples:
+        everything(conf, grid_tuple[0], grid_tuple[1])
+        sleep(5)
+
+    # everything(conf, _table_name, 2)
+
+
+def global_test(conf):
+
+    snooze = 3
+
+    print("Deleting grids keyspace and all tables ...")
+    reset(conf, "table_name")
+
+    print(f"short sleep or {snooze} and listing tables ...")
+    sleep(snooze)
+    list_tables(conf, "table_name")
+
+    print(f"short sleep or {snooze} then creating tables and listing them ...")
+    sleep(snooze)
+    create_tables(conf)
+    list_tables(conf, "HOTSPOTGRID")
+
+    print(f"short sleep or {snooze} then populating tables ...")
+    sleep(snooze)
+    populate_tables_from_files(conf)
+
+    print(f"short sleep or {snooze} then checking tables content ...")
+    sleep(snooze)
+    check_grids(_conf)
+
+
 if __name__ == '__main__':
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    print(f"current working dir: {dir_path}")
 
     _conf = ConfigFactory.parse_file('./Cassandra.conf')
 
-    # create_tables(_conf)
+    _conf.dir_path = dir_path
 
-    _table_name = 'HOTSPOTGRID'
-    #
-    # # demo(_conf, _table_name)
-    # # poc(_conf)
-    #
-    everything(_conf, _table_name)
+    global_test(_conf)
 
-    # list_tables(_conf, _table_name)
+    # create_tables_from_json_files(_conf)
+
+    # _table_name = 'CONCAVITYGRID'
+    #
+    # origin_name = f'{dir_path}/COMPACT/{_table_name}'
+    #
+    # _full_path = f'{origin_name}.json'
+
+    # check_grids(_conf)
+
+    # populate_table(
+    #     conf=_conf,
+    #     full_path=_full_path,
+    #     table_name=_table_name,
+    #     depth=1
+    # )
+    # poc(_conf)
+    #
+    # everything(_conf, _table_name, 2)
+
+    # populate_tables_from_files(_conf)
 
     # reset(_conf, _table_name)
 
+    # create_tables(_conf)
+    # list_tables(_conf, _table_name)
+#
 
 
 
