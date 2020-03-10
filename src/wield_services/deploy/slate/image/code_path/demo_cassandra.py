@@ -27,6 +27,7 @@ class BaseTable:
         self.host = host
         self.keyspace = keyspace
         self.table_name = table_name
+        self.cql_create_table = None
 
         if with_logger:
             self.set_logger()
@@ -144,6 +145,12 @@ class BaseTable:
         res = self.session.execute(f"DROP TABLE IF EXISTS {self.table_name};")
         print(res)
 
+    def create_table(self):
+
+        self.log.info(f"Creating table with this statement:\n{self.cql_create_table}")
+        self.session.execute(self.cql_create_table)
+        self.log.info(f"{self.table_name} Table verified !!!")
+
 
 class PointGrid(BaseTable):
     """
@@ -210,18 +217,18 @@ class PointGrid(BaseTable):
         self.depth = depth
         self.point_primary_key = point_primary_key
         self.value_list = value_list
+        self.create_cql_statements()
 
-    def create_table(self):
+    def create_cql_statements(self):
 
-        c_sql = 'mistake'
-
-        # TODO create statement variables in separate objects this is a mess too many permutations
+        # TODO ponder creating statement variables in separate objects
+        #  this is a mess too many permutations
         if self.depth == 1:
 
             if self.point_primary_key:
 
                 if self.value_list:
-                    c_sql = f"""
+                    self.cql_create_table = f"""
                     CREATE TABLE IF NOT EXISTS {self.table_name} (
                         x int,
                         y int,
@@ -231,7 +238,7 @@ class PointGrid(BaseTable):
                     )
                     """
                 else:
-                    c_sql = f"""
+                    self.cql_create_table = f"""
                     CREATE TABLE IF NOT EXISTS {self.table_name} (
                         x int,
                         y int,
@@ -243,7 +250,7 @@ class PointGrid(BaseTable):
 
             else:
 
-                c_sql = f"""
+                self.cql_create_table = f"""
                 CREATE TABLE IF NOT EXISTS {self.table_name} (
                     x int,
                     y int,
@@ -255,7 +262,7 @@ class PointGrid(BaseTable):
 
         elif self.depth == 2:
 
-            c_sql = f"""
+            self.cql_create_table = f"""
             CREATE TABLE IF NOT EXISTS {self.table_name} (
                 x int,
                 y int,
@@ -268,7 +275,7 @@ class PointGrid(BaseTable):
 
         elif self.depth == 3:
 
-            c_sql = f"""
+            self.cql_create_table = f"""
             CREATE TABLE IF NOT EXISTS {self.table_name} (
                 x int,
                 y int,
@@ -279,9 +286,6 @@ class PointGrid(BaseTable):
                 PRIMARY KEY (x, y, z, point_type, point_name)
             )
             """
-
-        self.session.execute(c_sql)
-        self.log.info(f"{self.table_name} Table verified !!!")
 
     def maybe_upsert_batch(self, upsert):
 
@@ -439,7 +443,7 @@ class PointGrid(BaseTable):
             else:
                 point_grid[point] = row.point_value
 
-            if pr and count < 100:
+            if pr and count < 10:
 
                 print(f"{point}:   {point_grid[point]}")
 
@@ -709,11 +713,9 @@ if __name__ == '__main__':
 
     global_test(_conf)
 
-    # create_tables_from_json_files(_conf)
+    _table_name = 'PROBESTART'
 
-    # _table_name = 'PROBESTART'
-    #
-    # _depth = 1
+    _depth = 1
 
     # create_table(_table_name, _conf, depth=_depth, point_primary_key=False)
     # list_tables(_conf, _table_name)
@@ -740,10 +742,10 @@ if __name__ == '__main__':
 
     # populate_tables_from_files(_conf)
 
-    # reset(_conf, _table_name)
+    # reset(_conf, "table_name")
 
     # create_tables(_conf)
-    # list_tables(_conf, _table_name)
+    # list_tables(_conf, "table_name")
 #
 
 
