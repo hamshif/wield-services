@@ -711,11 +711,9 @@ if __name__ == '__main__':
 
     # create_tables_from_json_files(_conf)
 
-    # _table_name = 'POINTS'
+    # _table_name = 'PROBESTART'
     #
-    # _full_path = f'{dir_path}/COMPACT/{_table_name}.json'
-    #
-    # _depth = 3
+    # _depth = 1
 
     # create_table(_table_name, _conf, depth=_depth, point_primary_key=False)
     # list_tables(_conf, _table_name)
@@ -729,7 +727,7 @@ if __name__ == '__main__':
     #     depth=_depth,
     #     point_primary_key=False
     # )
-    # everything(_conf, _table_name, _depth, True)
+    # everything(_conf, _table_name, _depth, True, False)
 
     # tups = get_table_tuples_from_conf(_conf)
 
