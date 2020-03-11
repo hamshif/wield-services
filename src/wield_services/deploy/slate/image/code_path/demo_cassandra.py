@@ -147,7 +147,7 @@ class BaseTable:
 
     def create_table(self):
 
-        self.log.info(f"Creating table with this statement:\n{self.cql_create_table}")
+        self.log.info(f"Creating table {self.table_name} with this statement:\n{self.cql_create_table}")
         self.session.execute(self.cql_create_table)
         self.log.info(f"{self.table_name} Table verified !!!")
 
@@ -186,7 +186,7 @@ class PointGrid(BaseTable):
         """
         hocon config example:
 
-        point_grids: [
+        spatial_grids: [
 
             # grid name, grid depth, point is key, value is list
 
@@ -629,7 +629,7 @@ def get_table_tuples_from_conf(conf):
 
     grid_type_tups = []
 
-    [grid_type_tups.append((grid[0], grid[1], grid[2], grid[3])) for grid in grid_conf.point_grids]
+    [grid_type_tups.append((grid[0], grid[1], grid[2], grid[3])) for grid in grid_conf.spatial_grids]
 
     return grid_type_tups
 
@@ -711,7 +711,7 @@ if __name__ == '__main__':
 
     _conf.dir_path = dir_path
 
-    global_test(_conf)
+    # global_test(_conf)
 
     _table_name = 'PROBESTART'
 
@@ -742,10 +742,9 @@ if __name__ == '__main__':
 
     # populate_tables_from_files(_conf)
 
-    # reset(_conf, "table_name")
-
-    # create_tables(_conf)
-    # list_tables(_conf, "table_name")
+    reset(_conf, "table_name")
+    create_tables(_conf)
+    list_tables(_conf, "table_name")
 #
 
 
