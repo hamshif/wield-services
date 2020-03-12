@@ -253,7 +253,7 @@ class ProteinTable(BaseTable):
 
         print(
             f"\n{self.table_name} Received {len(protein[row.chunk_index])} protein chunks. "
-            f"{len(protein[first_row.chunk_index][first_row.amino_acid_index])} Atoms per chunk"
+            f"Approximately 120 Atoms per chunk"
         )
 
         return protein
@@ -579,22 +579,6 @@ def reset(conf, table_name):
     # everything(conf, table_name)
 
 
-def get_file_names():
-
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    print(f"current working dir: {dir_path}")
-
-    grid_names = []
-    for (dirpath, dirnames, filenames) in os.walk(f'{dir_path}/COMPACT'):
-
-        grid_names.extend(filenames)
-        break
-
-    # print(grid_names)
-
-    return grid_names
-
-
 def create_point_table(conf, table_name, depth, point_primary_key, value_list):
 
     grid = PointGrid(
@@ -612,7 +596,11 @@ def create_point_table(conf, table_name, depth, point_primary_key, value_list):
     return f"created:  {table_name}"
 
 
-def populate_point_table(conf, full_path, table_name, depth, point_primary_key, value_list):
+def populate_point_table(conf, table_name, depth, point_primary_key, value_list):
+
+    full_path = f"{conf.dir_path}/COMPACT/{table_name}.json"
+
+    print(f"table name: {table_name} full path: {full_path}")
 
     print(f"table name: {table_name} depth: {depth} full path: {full_path}")
 
@@ -628,15 +616,8 @@ def populate_point_table(conf, full_path, table_name, depth, point_primary_key, 
                 point_primary_key=point_primary_key,
                 value_list=value_list
             )
-            #
-            # grid.list_keyspaces()
-            #
-            # grid.del_keyspace()
-            # grid.list_keyspaces()
 
-            # grid.create_table()
             grid.insert_data(data)
-            # rows = grid.select_data1(pr=True)
 
         except Exception as e:
             print(f"Error occurred while trying to run bash command: {e}")
@@ -646,112 +627,9 @@ def populate_point_table(conf, full_path, table_name, depth, point_primary_key, 
         return f'populated {table_name}'
 
 
-def populate_point_tables_from_files(conf):
-
-    grid_tuples = []
-    table_tuples = get_table_tuples_from_conf(conf)
-
-    # TODO find out how to use rx to combine and group by
-
-    for (dirpath, dirnames, filenames) in os.walk(f'{conf.dir_path}/COMPACT'):
-
-        for file_name in filenames:
-
-            full_name = f'{dirpath}/{file_name}'
-            g = file_name.replace('.json', '')
-            # print(full_name)
-
-            for t in table_tuples:
-
-                if t[0] == g:
-                    grid_tuple = (g, t[1], full_name, t[2], t[3])
-
-                    grid_tuples.append(grid_tuple)
-                    break
-
-    [print(f'grid_tuple: {grid_tuple}') for grid_tuple in grid_tuples]
-
-    source_files = rx.from_(grid_tuples)
-
-    max_threads = 5
-
-    with concurrent.futures.ProcessPoolExecutor(max_threads) as executor:
-
-        obs_files = source_files.pipe(
-
-            # ops.concat(source_tuples),
-            # ops.reduce(lambda acc, y: acc.append[y]),
-
-            # ops.group_by(lambda x: x[0]),
-            # ops.map(lambda grp: type(grp)),
-
-            # ops.
-            # ops.reduce(lambda acc, b: acc.append(b)),
-
-            # ops.zip(source_files, source_tuples),
-            # ops.filter(lambda grid_tuple: '.json' in grid_tuple),
-            # ops.map(lambda file_name: file_name.replace('.json', '')),
-            ops.flat_map(
-                lambda grid_tup: executor.submit(
-                    populate_point_table,
-                    conf,
-                    grid_tup[2],
-                    grid_tup[0],
-                    grid_tup[1],
-                    grid_tup[3],
-                    grid_tup[4],
-                )
-            )
-        )
-
-        # composed.subscribe(create_table)
-        obs_files.subscribe(lambda value: print(f"Received {value}"))
-
-
-def get_table_tuples_from_conf(conf):
-
-    cassandra_conf = ConfigFactory.parse_file('./Grids.conf')
-
-    grid_type_tups = []
-
-    [grid_type_tups.append((grid[0], grid[1], grid[2], grid[3])) for grid in cassandra_conf.spatial_grids]
-
-    return grid_type_tups
-
-
-def create_point_tables(conf):
-
-    grid_type_tuples = get_table_tuples_from_conf(conf)
-
-    source = rx.from_(grid_type_tuples)
-
-    max_threads = 5
-
-    with concurrent.futures.ProcessPoolExecutor(max_threads) as executor:
-        composed = source.pipe(
-            ops.flat_map(lambda gt: executor.submit(create_point_table, conf, gt[0], gt[1], gt[2], gt[3]))
-            # ops.map(lambda grid_tuple: grid_tuple)
-        )
-        # composed.subscribe(create_table)
-        composed.subscribe(lambda value: print(f"Received {value}"))
-
-
-def check_grids(conf):
-
-    grid_type_tuples = get_table_tuples_from_conf(conf)
+def test_point_grids(conf):
 
     snooze = 5
-
-    for grid_tuple in grid_type_tuples:
-
-        print(f"snoozing for {snooze} before checking {grid_tuple[0]} table")
-        sleep(snooze)
-        everything_point(conf, grid_tuple[0], grid_tuple[1], grid_tuple[2], grid_tuple[3])
-
-
-def global_test(conf):
-
-    snooze = 3
 
     print("Deleting grids keyspace and all tables ...")
     reset(conf, "table_name")
@@ -762,16 +640,21 @@ def global_test(conf):
 
     print(f"short sleep or {snooze} then creating tables and listing them ...")
     sleep(snooze)
-    create_point_tables(conf)
-    list_tables(conf, "HOTSPOTGRID")
+    all_point_tables(conf, create_point_table)
+    list_tables(conf, "table_name")
 
     print(f"short sleep or {snooze} then populating tables ...")
     sleep(snooze)
-    populate_point_tables_from_files(conf)
+    all_point_tables(conf, populate_point_table)
 
-    print(f"short sleep or {snooze} then checking tables content ...")
-    sleep(snooze)
-    check_grids(_conf)
+    grid_type_tuples = conf.tables.spatial_grids
+
+    for grid_tup in grid_type_tuples:
+
+        print(f"short sleep or {snooze} then checking tables content ...")
+        sleep(snooze)
+
+        everything_point(conf, grid_tup[0], grid_tup[1], grid_tup[2], grid_tup[3])
 
 
 def check_protein_table(conf, table_name):
@@ -882,6 +765,36 @@ def all_protein_tables(conf, f_protein):
         composed.subscribe(lambda value: print(f"Received {value}"))
 
 
+def all_point_tables(conf, f_point):
+
+    grid_type_tuples = conf.tables.spatial_grids
+
+    print(grid_type_tuples)
+
+    source_files = rx.from_(grid_type_tuples)
+
+    max_threads = 5
+
+    with concurrent.futures.ProcessPoolExecutor(max_threads) as executor:
+
+        obs_files = source_files.pipe(
+
+            ops.flat_map(
+                lambda grid_tup: executor.submit(
+                    f_point,
+                    conf,
+                    grid_tup[0],
+                    grid_tup[1],
+                    grid_tup[2],
+                    grid_tup[3],
+                )
+            )
+        )
+
+        # composed.subscribe(create_table)
+        obs_files.subscribe(lambda value: print(f"Received {value}"))
+
+
 if __name__ == '__main__':
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -891,7 +804,11 @@ if __name__ == '__main__':
 
     _conf.dir_path = dir_path
 
-    global_test(_conf)
+    cassandra_conf = ConfigFactory.parse_file('./Grids.conf')
+
+    _conf.tables = cassandra_conf
+
+    test_point_grids(_conf)
 
     # _table_name = 'PROBESTART'
     #
