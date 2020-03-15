@@ -5,6 +5,7 @@ Author: Gideon Bar
 import json
 import os
 import traceback
+from enum import Enum
 
 from time import sleep
 
@@ -22,11 +23,12 @@ import concurrent.futures
 
 class BaseTable:
 
-    def __init__(self, host, keyspace, table_name, with_logger=True, with_session=True):
+    def __init__(self, host, keyspace, table_name, with_logger=True, with_session=True, batch_size=50):
 
         self.host = host
         self.keyspace = keyspace
         self.table_name = table_name
+        self.batch_size = batch_size
         self.cql_create_table = None
         self.batch = None
         self.upsert_cql_cmd = None
@@ -161,102 +163,13 @@ class BaseTable:
         self.batch.add(self.prepared_upsert_cql_cmd, upsert)
         self.upsert_count += 1
 
-        if self.upsert_count > 50:
+        if self.upsert_count > self.batch_size:
+
+            print(f"upsert count:  {self.upsert_count}")
             self.upsert_count = 0
             self.session.execute(self.batch)
             self.batch.clear()
             self.log.info(f'Intermediate Batch Insert Completed {self.table_name}')
-
-
-class ProteinTable(BaseTable):
-
-    def __init__(self, host, keyspace, table_name):
-
-        super().__init__(host, keyspace, table_name)
-
-        self.cql_create_table = f"""
-        CREATE TABLE IF NOT EXISTS {self.table_name} (
-            chunk_index int,
-            amino_acid_index int,
-            atom_index int,
-            atom text,
-            PRIMARY KEY (chunk_index, amino_acid_index, atom_index)
-        )
-        """
-
-        self.upsert_cql_cmd = f"INSERT INTO  {self.table_name} (chunk_index, amino_acid_index, atom_index, atom) VALUES (?,?,?,?)"
-
-        self.batch = None
-
-    def insert_data(self, data=None):
-
-        self.prepared_upsert_cql_cmd = self.session.prepare(self.upsert_cql_cmd)
-
-        print(f"insert_cql_cmd:\n{self.upsert_cql_cmd}")
-
-        self.batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
-
-        if data is None:
-
-            for i in range(1, 20, 1):
-
-                upsert = (i, 8, 27, "ATOM     66  C   GLY A   6       0.160   0.603  -2.018  1.00 22.22   \n")
-                self.batch.add(self.upsert_cql_cmd, upsert)
-        else:
-
-            for k1, v1 in data.items():
-
-                for k2, v2 in v1.items():
-
-                    for k3, v3 in v2.items():
-
-                        upsert = (int(k1), int(k2), int(k3), v3)
-
-                        self.maybe_upsert_batch(upsert)
-
-        self.session.execute(self.batch)
-
-    def everything(self, pr=True):
-
-        protein = {}
-
-        rows = self.select_all(pr=False)
-
-        count = 0
-
-        first_row = rows[0]
-
-        for row in rows:
-
-            if row.chunk_index not in protein:
-
-                protein[row.chunk_index] = {}
-
-            if row.amino_acid_index not in protein[row.chunk_index]:
-
-                protein[row.chunk_index][row.amino_acid_index] = {}
-
-            if row.atom_index not in protein[row.chunk_index][row.amino_acid_index]:
-
-                protein[row.chunk_index][row.amino_acid_index][row.atom_index] = {}
-
-            protein[row.chunk_index][row.amino_acid_index][row.atom_index] = row.atom
-
-            if pr and count < 10:
-
-                print(
-                    f"{self.table_name}: {row.chunk_index}: {row.amino_acid_index}: {row.atom_index}:     "
-                    f"{protein[row.chunk_index][row.amino_acid_index][row.atom_index]}"
-                )
-
-                count += 1
-
-        print(
-            f"\n{self.table_name} Received {len(protein[row.chunk_index])} protein chunks. "
-            f"Approximately 120 Atoms per chunk"
-        )
-
-        return protein
 
 
 class PointGrid(BaseTable):
@@ -289,7 +202,7 @@ class PointGrid(BaseTable):
 
     """
 
-    def __init__(self, host, table_name, depth=1, point_primary_key=True, value_list=False):
+    def __init__(self, host, table_name, keyspace='grids', depth=1, point_primary_key=True, value_list=False):
         """
         hocon config example:
 
@@ -319,7 +232,7 @@ class PointGrid(BaseTable):
         if depth > 3 or depth < 1:
             raise ValueError(f'Supports 3 depth values of nested dictionaries 1, 2, 3 you entered {depth}')
 
-        super().__init__(host, 'grids', table_name)
+        super().__init__(host=host, keyspace='grids', table_name=table_name)
         self.upsert_count = 0
         self.depth = depth
         self.point_primary_key = point_primary_key
@@ -543,6 +456,7 @@ def everything_point(conf, table_name, depth, point_primary_key, value_list):
 
     grid = PointGrid(
         host=conf.host,
+        keyspace='grids',
         table_name=table_name,
         depth=depth,
         point_primary_key=point_primary_key,
@@ -554,26 +468,27 @@ def everything_point(conf, table_name, depth, point_primary_key, value_list):
     return point_grid
 
 
-def list_tables(conf, table_name):
+def list_tables(conf, keyspace, table_name):
 
-    grid = PointGrid(conf.host, table_name)
+    table = BaseTable(host=conf.host, keyspace=keyspace, table_name=table_name)
 
-    grid.list_tables()
+    table.list_tables()
 
 
-def reset(conf, table_name):
+def reset(conf, table_name, keyspace='grids'):
 
-    grid = PointGrid(
+    table = BaseTable(
         host=conf.host,
+        keyspace=keyspace,
         table_name=table_name
     )
 
-    grid.list_keyspaces()
+    table.list_keyspaces()
 
-    grid.del_keyspace()
-    grid.list_keyspaces()
+    table.del_keyspace()
+    table.list_keyspaces()
 
-    grid = PointGrid(conf.host, table_name)
+    table = BaseTable(host=conf.host, keyspace=keyspace, table_name=table_name)
 
     # grid.create_table()
     # everything(conf, table_name)
@@ -583,6 +498,7 @@ def create_point_table(conf, table_name, depth, point_primary_key, value_list):
 
     grid = PointGrid(
         host=conf.host,
+        keyspace='grids',
         table_name=table_name,
         depth=depth,
         point_primary_key=point_primary_key,
@@ -611,6 +527,7 @@ def populate_point_table(conf, table_name, depth, point_primary_key, value_list)
 
             grid = PointGrid(
                 host=conf.host,
+                keyspace='grids',
                 table_name=table_name,
                 depth=depth,
                 point_primary_key=point_primary_key,
@@ -636,12 +553,12 @@ def test_point_grids(conf):
 
     print(f"short sleep or {snooze} and listing tables ...")
     sleep(snooze)
-    list_tables(conf, "table_name")
+    list_tables(conf=conf, keyspace='grids', table_name="table_name")
 
     print(f"short sleep or {snooze} then creating tables and listing them ...")
     sleep(snooze)
     all_point_tables(conf, create_point_table)
-    list_tables(conf, "table_name")
+    list_tables(conf=conf, keyspace='grids', table_name="table_name")
 
     print(f"short sleep or {snooze} then populating tables ...")
     sleep(snooze)
@@ -657,95 +574,16 @@ def test_point_grids(conf):
         everything_point(conf, grid_tup[0], grid_tup[1], grid_tup[2], grid_tup[3])
 
 
-def check_protein_table(conf, table_name):
-
-    protein_table = ProteinTable(
-        host=conf.host,
-        keyspace='grids',
-        table_name=table_name
-    )
-
-    protein = protein_table.everything()
-
-    return f"created:  {table_name}"
-
-
-def test_proteins(conf):
-
-    snooze = 5
-
-    print("Deleting grids keyspace and all tables ...")
-    reset(conf, "table_name")
-
-    print(f"short sleep or {snooze} and listing tables ...")
-    sleep(snooze)
-    list_tables(conf, "table_name")
-
-    print(f"short sleep or {snooze} then creating tables and listing them ...")
-    sleep(snooze)
-    all_protein_tables(conf, create_protein_table)
-    list_tables(conf, "table_name")
-
-    print(f"short sleep or {snooze} then populating tables ...")
-    sleep(snooze)
-    all_protein_tables(conf, populate_protein_table)
-
-    print(f"short sleep or {snooze} then checking tables content ...")
-    sleep(snooze)
-    all_protein_tables(conf, check_protein_table)
-
-
-def del_table(table_name, conf, depth, point_primary_key=True):
+def del_table(conf, table_name, keyspace):
 
     # print(table_name)
-    grid = PointGrid(
-        conf.host,
-        table_name,
-        depth=depth,
-        point_primary_key=point_primary_key
+    grid = BaseTable(
+        host=conf.host,
+        keyspace=keyspace,
+        table_name=table_name,
     )
 
     grid.del_table()
-
-
-def create_protein_table(conf, protein_name):
-
-    protein_table = ProteinTable(
-        host=conf.host,
-        keyspace='grids',
-        table_name=protein_name
-    )
-
-    protein_table.create_table()
-
-    return f"created:  {protein_name}"
-
-
-def populate_protein_table(conf, table_name):
-
-    full_path = f"{conf.dir_path}/COMPACT/{table_name}.json"
-
-    print(f"table name: {table_name} full path: {full_path}")
-
-    with open(full_path) as json_file:
-
-        try:
-            data = json.load(json_file)
-
-            table = ProteinTable(
-                host=conf.host,
-                keyspace='grids',
-                table_name=table_name,
-            )
-
-            table.insert_data(data)
-
-        except Exception as e:
-            print(f"Error occurred while trying to run bash command: {e}")
-
-            return f'failed {table_name}'
-
-        return f'populated {table_name}'
 
 
 def all_protein_tables(conf, f_protein):
@@ -808,33 +646,22 @@ if __name__ == '__main__':
 
     _conf.tables = cassandra_conf
 
-    test_point_grids(_conf)
+    _keyspace = 'grids'
+    # test_point_grids(_conf)
 
-    # _table_name = 'PROBESTART'
-    #
+    _table_name = 'PROBESTART'
+    # #
     # _depth = 1
     #
     # create_point_table(_table_name, _conf, depth=_depth, point_primary_key=False)
-    # list_tables(_conf, _table_name)
-    # del_table(_table_name, _conf, depth=_depth, point_primary_key=False)
-    # list_tables(_conf, _table_name)
+    list_tables(conf=_conf, keyspace=_keyspace, table_name=_table_name)
+    del_table(conf=_conf, keyspace=_keyspace, table_name=_table_name)
+    list_tables(conf=_conf, keyspace=_keyspace, table_name=_table_name)
     #
-    # populate_point_table(
-    #     conf=_conf,
-    #     full_path=_full_path,
-    #     table_name=_table_name,
-    #     depth=_depth,
-    #     point_primary_key=False
-    # )
     # everything_point(_conf, _table_name, _depth, True, False)
-    #
-    # tups = get_table_tuples_from_conf(_conf)
-    #
-    # check_grids(_conf)
     #
     # everything_point(_conf, _table_name, 2)
 
-    # test_proteins(_conf)
 
 
 #
