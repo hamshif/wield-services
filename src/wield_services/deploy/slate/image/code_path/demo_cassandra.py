@@ -647,16 +647,16 @@ if __name__ == '__main__':
     _conf.tables = cassandra_conf
 
     _keyspace = 'grids'
-    # test_point_grids(_conf)
+    test_point_grids(_conf)
 
     _table_name = 'PROBESTART'
     # #
     # _depth = 1
     #
     # create_point_table(_table_name, _conf, depth=_depth, point_primary_key=False)
-    list_tables(conf=_conf, keyspace=_keyspace, table_name=_table_name)
-    del_table(conf=_conf, keyspace=_keyspace, table_name=_table_name)
-    list_tables(conf=_conf, keyspace=_keyspace, table_name=_table_name)
+    # list_tables(conf=_conf, keyspace=_keyspace, table_name=_table_name)
+    # del_table(conf=_conf, keyspace=_keyspace, table_name=_table_name)
+    # list_tables(conf=_conf, keyspace=_keyspace, table_name=_table_name)
     #
     # everything_point(_conf, _table_name, _depth, True, False)
     #
