@@ -4,6 +4,7 @@ Author: Gideon Bar
 """
 import json
 import os
+import sys
 import traceback
 from enum import Enum
 
@@ -20,156 +21,14 @@ import rx
 from rx import operators as ops
 import concurrent.futures
 
+_dir_path = os.path.dirname(os.path.realpath(__file__))
+print(f"current working dir: {_dir_path}")
+sys.path.insert(0, _dir_path)
 
-class BaseTable:
+from base_cassandra import *
 
-    def __init__(self, host, keyspace, table_name, with_logger=True, with_session=True, batch_size=50):
 
-        self.host = host
-        self.keyspace = keyspace
-        self.table_name = table_name
-        self.batch_size = batch_size
-        self.cql_create_table = None
-        self.batch = None
-        self.upsert_cql_cmd = None
-        self.prepared_upsert_cql_cmd = None
-        self.upsert_count = 0
-
-        if with_logger:
-            self.set_logger()
-        else:
-            self.log = None
-
-        if with_session:
-            self.create_session()
-        else:
-            self.cluster = None
-            self.session = None
-
-    def __del__(self):
-        self.cluster.shutdown()
-
-    def create_session(self):
-        self.cluster = Cluster(
-            [self.host],
-            # load_balancing_policy=RoundRobinPolicy(),
-            # protocol_version=65
-        )
-        self.session = self.cluster.connect(None)
-
-        # self.log.info(f"creating keyspace: {self.keyspace}")
-        self.session.execute(f"""
-                CREATE KEYSPACE IF NOT EXISTS {self.keyspace}
-                WITH replication = {{ 'class': 'SimpleStrategy', 'replication_factor': '2' }}
-                """)
-
-        # self.log.info(f"keyspace: {self.keyspace} verified")
-        self.session.set_keyspace(self.keyspace)
-
-    def get_session(self):
-        return self.session
-
-    # How about Adding some log info to see what went wrong
-    def set_logger(self):
-        log = logging.getLogger()
-        log.setLevel('INFO')
-        handler = logging.StreamHandler()
-        handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
-        log.addHandler(handler)
-        self.log = log
-
-    def list_keyspaces(self):
-
-        rows = self.session.execute(f"SELECT keyspace_name FROM system_schema.keyspaces")
-
-        [print(row) for row in rows]
-
-    def select_data(self, limit=50, pr=False):
-        rows = self.session.execute(f'select * from {self.table_name} limit {limit};')
-
-        if pr:
-            [print(row) for row in rows]
-
-        return rows
-
-    def select_all(self, pr=False, where_args=None):
-
-        if where_args is None:
-            where_clause = ''
-
-        rows = self.session.execute(f'select * from {self.table_name};')
-
-        if pr:
-            [print(row) for row in rows]
-
-        return rows
-
-    def del_keyspace(self, keyspace=None):
-
-        if keyspace is None:
-            keyspace = self.keyspace
-
-        if self.cluster is not None:
-            self.cluster.shutdown()
-        self.cluster = Cluster([self.host])
-        self.session = self.cluster.connect(None)
-
-        rows = self.session.execute(f"SELECT keyspace_name FROM system_schema.keyspaces", timeout=20)
-        if keyspace in [row[0] for row in rows]:
-            self.log.info(f"dropping existing keyspace: {keyspace}")
-            self.session.execute(f"DROP KEYSPACE {keyspace}")
-        else:
-            self.log.info(f"could'nt find keyspace: {keyspace}")
-
-    def list_tables(self, keyspace=None):
-
-        if keyspace is None:
-            keyspace = self.keyspace
-
-        self.cluster = Cluster([self.host])
-        self.session = self.cluster.connect(None)
-
-        tables = self.cluster.metadata.keyspaces['grids']
-        # cmd = f"DESCRIBE KEYSPACES;"
-        #
-        # print(cmd)
-        #
-        # tables = self.session.execute(cmd)
-        #
-
-        print(f"meta data:\n{tables.__dict__}")
-
-        for table in tables.__dict__['tables']:
-            print(table)
-
-            column = tables.__dict__['tables'][table].__dict__['columns'].items()
-
-            [print(f'column: {i}   {i[1]}') for i in column]
-
-    def del_table(self):
-
-        res = self.session.execute(f"DROP TABLE IF EXISTS {self.table_name};")
-        print(res)
-
-    def create_table(self):
-
-        self.log.info(f"Creating table {self.table_name} with this statement:\n{self.cql_create_table}")
-        self.session.execute(self.cql_create_table)
-        self.log.info(f"{self.table_name} Table verified !!!")
-
-    def maybe_upsert_batch(self, upsert):
-
-        # print(f"klook  {upsert}")
-        self.batch.add(self.prepared_upsert_cql_cmd, upsert)
-        self.upsert_count += 1
-
-        if self.upsert_count > self.batch_size:
-
-            print(f"upsert count:  {self.upsert_count}")
-            self.upsert_count = 0
-            self.session.execute(self.batch)
-            self.batch.clear()
-            self.log.info(f'Intermediate Batch Insert Completed {self.table_name}')
+KEYSPACE = 'grids'
 
 
 class PointGrid(BaseTable):
@@ -468,32 +327,6 @@ def everything_point(conf, table_name, depth, point_primary_key, value_list):
     return point_grid
 
 
-def list_tables(conf, keyspace, table_name):
-
-    table = BaseTable(host=conf.host, keyspace=keyspace, table_name=table_name)
-
-    table.list_tables()
-
-
-def reset(conf, table_name, keyspace='grids'):
-
-    table = BaseTable(
-        host=conf.host,
-        keyspace=keyspace,
-        table_name=table_name
-    )
-
-    table.list_keyspaces()
-
-    table.del_keyspace()
-    table.list_keyspaces()
-
-    table = BaseTable(host=conf.host, keyspace=keyspace, table_name=table_name)
-
-    # grid.create_table()
-    # everything(conf, table_name)
-
-
 def create_point_table(conf, table_name, depth, point_primary_key, value_list):
 
     grid = PointGrid(
@@ -574,35 +407,6 @@ def test_point_grids(conf):
         everything_point(conf, grid_tup[0], grid_tup[1], grid_tup[2], grid_tup[3])
 
 
-def del_table(conf, table_name, keyspace):
-
-    # print(table_name)
-    grid = BaseTable(
-        host=conf.host,
-        keyspace=keyspace,
-        table_name=table_name,
-    )
-
-    grid.del_table()
-
-
-def all_protein_tables(conf, f_protein):
-
-    cassandra_conf = ConfigFactory.parse_file('./Grids.conf')
-
-    source = rx.from_(cassandra_conf.proteins)
-
-    max_threads = 5
-
-    with concurrent.futures.ProcessPoolExecutor(max_threads) as executor:
-        composed = source.pipe(
-            ops.flat_map(lambda protein_name: executor.submit(f_protein, conf, protein_name))
-            # ops.map(lambda grid_tuple: grid_tuple)
-        )
-        # composed.subscribe(create_table)
-        composed.subscribe(lambda value: print(f"Received {value}"))
-
-
 def all_point_tables(conf, f_point):
 
     grid_type_tuples = conf.tables.spatial_grids
@@ -628,8 +432,6 @@ def all_point_tables(conf, f_point):
                 )
             )
         )
-
-        # composed.subscribe(create_table)
         obs_files.subscribe(lambda value: print(f"Received {value}"))
 
 
