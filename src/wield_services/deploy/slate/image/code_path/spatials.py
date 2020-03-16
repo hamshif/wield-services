@@ -61,7 +61,7 @@ class PointGrid(BaseTable):
 
     """
 
-    def __init__(self, host, table_name, keyspace='grids', depth=1, point_primary_key=True, value_list=False):
+    def __init__(self, host, table_name, keyspace=KEYSPACE, depth=1, point_primary_key=True, value_list=False):
         """
         hocon config example:
 
@@ -91,7 +91,7 @@ class PointGrid(BaseTable):
         if depth > 3 or depth < 1:
             raise ValueError(f'Supports 3 depth values of nested dictionaries 1, 2, 3 you entered {depth}')
 
-        super().__init__(host=host, keyspace='grids', table_name=table_name)
+        super().__init__(host=host, keyspace=KEYSPACE, table_name=table_name)
         self.upsert_count = 0
         self.depth = depth
         self.point_primary_key = point_primary_key
@@ -315,7 +315,7 @@ def everything_point(conf, table_name, depth, point_primary_key, value_list):
 
     grid = PointGrid(
         host=conf.host,
-        keyspace='grids',
+        keyspace=KEYSPACE,
         table_name=table_name,
         depth=depth,
         point_primary_key=point_primary_key,
@@ -331,7 +331,7 @@ def create_point_table(conf, table_name, depth, point_primary_key, value_list):
 
     grid = PointGrid(
         host=conf.host,
-        keyspace='grids',
+        keyspace=KEYSPACE,
         table_name=table_name,
         depth=depth,
         point_primary_key=point_primary_key,
@@ -360,7 +360,7 @@ def populate_point_table(conf, table_name, depth, point_primary_key, value_list)
 
             grid = PointGrid(
                 host=conf.host,
-                keyspace='grids',
+                keyspace=KEYSPACE,
                 table_name=table_name,
                 depth=depth,
                 point_primary_key=point_primary_key,
@@ -386,12 +386,12 @@ def test_point_grids(conf):
 
     print(f"short sleep or {snooze} and listing tables ...")
     sleep(snooze)
-    list_tables(conf=conf, keyspace='grids', table_name="table_name")
+    list_tables(conf=conf, keyspace=KEYSPACE, table_name="table_name")
 
     print(f"short sleep or {snooze} then creating tables and listing them ...")
     sleep(snooze)
     all_point_tables(conf, create_point_table)
-    list_tables(conf=conf, keyspace='grids', table_name="table_name")
+    list_tables(conf=conf, keyspace=KEYSPACE, table_name="table_name")
 
     print(f"short sleep or {snooze} then populating tables ...")
     sleep(snooze)
@@ -444,11 +444,11 @@ if __name__ == '__main__':
 
     _conf.dir_path = dir_path
 
-    cassandra_conf = ConfigFactory.parse_file('./Grids.conf')
+    cassandra_conf = ConfigFactory.parse_file('./tables.conf')
 
     _conf.tables = cassandra_conf
 
-    _keyspace = 'grids'
+    _keyspace = KEYSPACE
     test_point_grids(_conf)
 
     _table_name = 'PROBESTART'

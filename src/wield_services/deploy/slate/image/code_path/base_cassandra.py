@@ -201,13 +201,13 @@ def reset(conf, table_name, keyspace='grids'):
 def del_table(conf, table_name, keyspace):
 
     # print(table_name)
-    grid = BaseTable(
+    table = BaseTable(
         host=conf.host,
         keyspace=keyspace,
         table_name=table_name,
     )
 
-    grid.del_table()
+    table.del_table()
 
 
 if __name__ == '__main__':
@@ -219,7 +219,7 @@ if __name__ == '__main__':
 
     _conf.dir_path = dir_path
 
-    cassandra_conf = ConfigFactory.parse_file('./Grids.conf')
+    cassandra_conf = ConfigFactory.parse_file('./tables.conf')
 
     _conf.tables = cassandra_conf
 
