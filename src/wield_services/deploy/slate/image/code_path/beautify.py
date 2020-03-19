@@ -11,10 +11,10 @@ from rx import operators as ops
 import concurrent.futures
 
 
-def get_file_names(dir_path):
+def get_file_names(dir_path, sub_origin):
 
     grid_names = []
-    for (dirpath, dirnames, filenames) in os.walk(f'{dir_path}/COMPACT'):
+    for (dirpath, dirnames, filenames) in os.walk(f'{dir_path}/{sub_origin}'):
 
         # grid_names = [grid.replace('.json', '') for grid in filenames if '.json' in grid]
 
@@ -52,9 +52,9 @@ def beautify_file(file_name, dir_path, origin_dir='COMPACT', destination_dir='BE
     return f"pretty: {destination_full_path}"
 
 
-def beautify_all_in_path(dir_path):
+def beautify_all_in_path(dir_path, sub_origin='COMPACT', sub_destination='BEAUTY'):
 
-    uglies = get_file_names(dir_path)
+    uglies = get_file_names(dir_path, sub_origin)
 
     source = rx.from_(uglies)
     max_threads = 5
@@ -67,8 +67,9 @@ def beautify_all_in_path(dir_path):
                 lambda file_name: executor.submit(
                     beautify_file,
                     file_name,
-                    _dir_path,
-                    'COMPACT'
+                    dir_path,
+                    sub_origin,
+                    sub_destination,
                 )
             )
         )

@@ -25,6 +25,7 @@ RUN pip3 install kafka-python
 RUN pip3 install pyhocon
 RUN pip3 install confluent-kafka
 RUN pip3 install rx
+RUN pip3 install cassandra-driver
 
 ENV KUBE_LATEST_VERSION="v1.16.0"
 
