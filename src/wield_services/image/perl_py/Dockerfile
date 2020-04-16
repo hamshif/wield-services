@@ -44,6 +44,8 @@ RUN git clone --branch ${VERSION} --single-branch https://github.com/edenhill/ka
 
 RUN rm -rf /app/kafkacat
 
+RUN cpanm install Net::Kafka
+
 COPY run.sh /run.sh
 
 RUN chmod +x "/run.sh"
