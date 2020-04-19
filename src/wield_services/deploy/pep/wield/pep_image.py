@@ -35,8 +35,15 @@ def pep_image(force_last=True, push=False):
     )
 
     super_project_root = u.get_super_project_root()
-    origin_path = f'{super_project_root}/micros/perl/pep'
-    origin_regex = 'pep.pl'
+
+    # TODO get conf with local service context to allow override with local.conf
+    try:
+        dev_code_root = super_project_root.replace('/dev/data', '')
+        origin_path = f'{dev_code_root}/{conf.pep.origin_path}'
+        origin_regex = conf.pep.origin_regex
+    except AttributeError:
+        origin_path = f'{super_project_root}/micros/perl/pep'
+        origin_regex = 'pep.pl'
 
     module_root = u.get_module_root(__file__)
     image_root = f'{module_root}image'
