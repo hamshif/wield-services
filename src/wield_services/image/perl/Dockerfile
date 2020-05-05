@@ -57,7 +57,7 @@ RUN cpm install DBD::Cassandra && \
 RUN cpm install Const::Exporter
 
 RUN cpanm install YAML::XS
-
+RUN cpanm install Net::Kafka
 
 COPY run.sh /run.sh
 

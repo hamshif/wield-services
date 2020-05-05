@@ -26,6 +26,7 @@ RUN pip3 install pyhocon
 RUN pip3 install confluent-kafka
 RUN pip3 install rx
 RUN pip3 install cassandra-driver
+RUN pip3 install wielder
 
 ARG VERSION=1.4.0
 
@@ -43,8 +44,6 @@ RUN git clone --branch ${VERSION} --single-branch https://github.com/edenhill/ka
     strip /usr/local/bin/kafkacat
 
 RUN rm -rf /app/kafkacat
-
-RUN cpanm install Net::Kafka
 
 COPY run.sh /run.sh
 
