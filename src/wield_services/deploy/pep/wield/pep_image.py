@@ -1,25 +1,63 @@
 #!/usr/bin/env python
 import logging
+from enum import Enum
+from os import mkdir
+from shutil import rmtree, copyfile
+import pip
+
+from wield_services.wield.deploy.util import get_locale
+from wielder.util.arguer import replace_none_vars_from_args
+from wielder.util.commander import async_cmd
+from wielder.util.wgit import clone_or_update
 
 from wield_services.wield.log_util import setup_logging
 from wielder.util.imager import pack_image, push_image, replace_dir_contents
 from wield_services.wield.deploy import util as u
+from wielder.wield.wield_service import WieldService
+
+
+class ArtifactMethod(Enum):
+
+    INIT_REPO = 'INIT_REPO'
+    UPDATE_REPO = 'UPDATE_REPO'
+    GET_DIR = 'GET_DIR'
 
 
 def pep_image(force_last=True, push=False):
 
-    # TODO tag from git commit in case its not dev
-    image_name = 'pep'
+    locale = get_locale(__file__)
 
-    tag = 'dev'
+    action, mode, enable_debug, local_mount, service_mode = replace_none_vars_from_args(
+        action=None,
+        mode=None,
+        enable_debug=None,
+        local_mount=None,
+        service_mode=None,
+        project_override=None
+    )
+
+    service = WieldService(
+        name='pep',
+        locale=locale,
+        mode=mode,
+        service_mode=service_mode,
+    )
+
+    plan = service.plan.module_conf.packaging
+
+    image_name = plan.image_name
+
+    tag = plan.git.branch
 
     project_root = u.get_project_root()
     conf = u.get_conf_context_project(project_root=project_root)
 
+    image_root = u.get_project_image_root()
+
     pack_image(
         conf=conf,
         name='perl',
-        image_root=u.get_project_image_root(),
+        image_root=image_root,
         push=False,
         force=True,
         tag=tag
@@ -28,20 +66,17 @@ def pep_image(force_last=True, push=False):
     pack_image(
         conf=conf,
         name='perl_py',
-        image_root=u.get_project_image_root(),
+        image_root=image_root,
         push=False,
         force=True,
         tag=tag
     )
 
-    super_project_root = u.get_super_project_root()
-
-    # TODO get conf with local service context to allow override with local.conf
     try:
-        dev_code_root = super_project_root.replace('/dev/data', '')
-        origin_path = f'{dev_code_root}/{conf.pep.origin_path}'
-        origin_regex = conf.pep.origin_regex
+        origin_path = plan.origin_path
+        origin_regex = plan.origin_regex
     except AttributeError:
+        super_project_root = u.get_super_project_root()
         origin_path = f'{super_project_root}/micros/perl/pep'
         origin_regex = 'pep.pl'
 
@@ -49,12 +84,50 @@ def pep_image(force_last=True, push=False):
     image_root = f'{module_root}image'
     destination_path = f'{image_root}/{image_name}'
 
-    replace_dir_contents(
-        origin_path,
-        origin_regex,
-        destination_path=destination_path,
-        destination_dir_name='artifacts'
-    )
+    artifacts_dir = f'{destination_path}/artifacts'
+
+    artifact_method = plan.artifact_method
+
+    if artifact_method == ArtifactMethod.GET_DIR.value or artifact_method == ArtifactMethod.INIT_REPO.value:
+        try:
+            rmtree(artifacts_dir)
+
+        except Exception as e:
+            logging.error(str(e))
+
+    if artifact_method == ArtifactMethod.GET_DIR.value:
+
+        replace_dir_contents(
+            origin_path,
+            origin_regex,
+            destination_path=destination_path,
+            destination_dir_name='artifacts'
+        )
+    else:
+        clone_or_update(source=origin_path, destination=artifacts_dir, branch=plan.git.branch)
+
+        if artifact_method == ArtifactMethod.INIT_REPO.value:
+
+            for art in plan.artifacts:
+
+                try:
+                    mkdir(path=f"{artifacts_dir}/{art[0]}")
+
+                except Exception as e:
+                    logging.error(str(e))
+
+                try:
+                    copyfile(src=f"{origin_path}/{art[0]}/{art[1]}", dst=f"{artifacts_dir}/{art[0]}/{art[1]}")
+
+                except Exception as e:
+                    logging.error(str(e))
+
+            _cmd = f'{artifacts_dir}/pypep/prepare.bash'
+
+            a = async_cmd(_cmd)
+
+            for b in a:
+                print(b)
 
     pack_image(
         conf,
