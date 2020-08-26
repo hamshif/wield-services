@@ -1,9 +1,9 @@
 #!/usr/bin/env python
+
 import logging
+import os
 from enum import Enum
-from os import mkdir
 from shutil import rmtree, copyfile
-import pip
 
 from wield_services.wield.deploy.util import get_locale
 from wielder.util.arguer import replace_none_vars_from_args
@@ -89,11 +89,7 @@ def pep_image(force_last=True, push=False):
     artifact_method = plan.artifact_method
 
     if artifact_method == ArtifactMethod.GET_DIR.value or artifact_method == ArtifactMethod.INIT_REPO.value:
-        try:
-            rmtree(artifacts_dir)
-
-        except Exception as e:
-            logging.error(str(e))
+        rmtree(artifacts_dir, ignore_errors=True)
 
     if artifact_method == ArtifactMethod.GET_DIR.value:
 
@@ -110,11 +106,7 @@ def pep_image(force_last=True, push=False):
 
             for art in plan.artifacts:
 
-                try:
-                    mkdir(path=f"{artifacts_dir}/{art[0]}")
-
-                except Exception as e:
-                    logging.error(str(e))
+                os.makedirs(f"{artifacts_dir}/{art[0]}", exist_ok=True)
 
                 try:
                     copyfile(src=f"{origin_path}/{art[0]}/{art[1]}", dst=f"{artifacts_dir}/{art[0]}/{art[1]}")
